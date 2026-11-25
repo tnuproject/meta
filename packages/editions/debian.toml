@@ -1,10 +1,27 @@
-# META Debian Edition. Status: PLANNED. See docs/packaging/editions.md.
+# META Debian Edition. See docs/packaging/editions.md.
 id = "debian"
 name = "META Debian Edition"
 ecosystem = "debian"
 root = "/compat/meta/debian"
 package_manager = "apt"
 package_format = "deb"
+
+# The fingerprints were compared with the debian-archive-keyring package in
+# Ubuntu's archive, which Ubuntu signs independently, on 2026-11-25.
+[bootstrap]
+kind = "debootstrap"
+suite = "bookworm"
+mirror = "http://deb.debian.org/debian"
+
+[[bootstrap.keys]]
+url = "https://ftp-master.debian.org/keys/archive-key-12.asc"
+fingerprint = "B8B80B5B623EAB6AD8775C45B7C5D7D6350947F8"
+sha256 = "c2a9a16fde95e037bafd0fa6b7e31f41b4ff1e85851de5558f19a2a2f0e955e2"
+
+[[bootstrap.keys]]
+url = "https://ftp-master.debian.org/keys/release-12.asc"
+fingerprint = "4D64FEC119C2029067D6E791F8D2585B8783D481"
+sha256 = "521e9f6a9f9b92ee8d5ce74345e8cfd04028dae9db6f571259d584b293549824"
 
 [[shared]]
 host = "/home"
@@ -17,3 +34,9 @@ host = "/tmp"
 inside = "/tmp"
 writable = true
 reason = "sockets and temporary files shared with native programs"
+
+[[shared]]
+host = "/var/run/dbus"
+inside = "/run/dbus"
+writable = false
+reason = "the system bus; every service on it authorizes its callers"

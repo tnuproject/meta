@@ -9,13 +9,17 @@ members = [
     "installer",
     "linux2bsd",
     "metaupd/cli",
+    "metaupd/daemon",
     "metaupd/github-releases",
     "metaupd/metadata",
     "metaupd/release-tool",
     "metaupd/rollback",
     "metaupd/tests",
     "metaupd/verification",
+    "desktop/dbus",
     "networking",
+    "networking/netd",
+    "packages/compat",
     "packages/policy",
 ]
 
@@ -31,6 +35,8 @@ publish = false
 # Internal crates
 linux2bsd = { path = "linux2bsd" }
 meta-common = { path = "common" }
+meta-dbus = { path = "desktop/dbus" }
+meta-compat = { path = "packages/compat" }
 meta-eds-db = { path = "eds/driver-database" }
 meta-eds-detect = { path = "eds/hardware-detection" }
 meta-net = { path = "networking" }
@@ -58,6 +64,7 @@ tempfile = "3"
 thiserror = "2"
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
 toml = "0.9"
+zbus = "5"
 zeroize = "1"
 
 [workspace.lints.rust]

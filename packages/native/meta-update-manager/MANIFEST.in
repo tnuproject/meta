@@ -1,0 +1,12 @@
+name: meta-update-manager
+origin: meta/meta-update-manager
+version: "@VERSION@"
+comment: "Graphical front end of metaupd"
+desc: "Shows and starts META updates on any desktop."
+maintainer: "packages@meta.invalid"
+www: "https://github.com/tnuproject/meta"
+categories: [sysutils]
+licenselogic: single
+licenses: [BSD2CLAUSE]
+prefix: /usr/local
+deps: { gtk3: { origin: "x11-toolkits/gtk30", version: "3.24" }, "py312-pygobject": { origin: "devel/py-pygobject", version: "3.50" }, python3: { origin: "lang/python3", version: "3" }, "meta-services": { origin: "meta/meta-services", version: "@VERSION@" } }

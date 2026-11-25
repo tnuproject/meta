@@ -1,8 +1,11 @@
 # Installer
 
-Status: EXPERIMENTAL. It produces plans. No code in it writes to a disk.
+Status: EXPERIMENTAL.
 
-`meta-installer` is a keyboard-driven terminal interface that needs no graphics.
+Two programs, so that the interface never needs to write to a disk:
+
+- `meta-installer` collects choices and saves a plan.
+- `meta-install-run` carries a plan out. It is the only code in META that writes to disks.
 
 ## Screens
 
@@ -24,41 +27,62 @@ Status: EXPERIMENTAL. It produces plans. No code in it writes to a disk.
 Keys: Up and Down move between fields, or scroll the review; Left and Right change a
 choice; Enter continues; Page Up and Page Down change screens; Esc asks before quitting.
 
-## Rules
+## Before a disk is touched
 
-- No disk is selected until the user chooses one.
-- Disks in use are marked. Optical and small media are not offered.
-- sudo is always installed, and the root password is locked. A user without sudo produces a
-  warning, because nobody could then administer the system.
-- EDS follows the desktop choice unless set explicitly.
-- Desktop packages missing from FreeBSD's repository at the last check produce a warning.
-- Passwords stay in memory that is cleared on exit, and are never written or printed.
-- All text input is validated against strict character sets, since it would later reach
-  system tools.
+`meta-install-run` refuses unless all of this holds, and only lists devices to find out:
 
-Custom mode currently shows the same screens. Its additional partitioning choices are
-PLANNED.
+1. The plan validates again and needs nothing unsupported.
+2. The disk exists and nothing has it open. Mounted filesystems and imported pools count.
+3. The disk's name was repeated, typed on the terminal or given with `--confirm`.
+4. The user has a password, given on standard input or typed.
+5. The pool name is free and the target directory empty.
+
+The current partitions are shown before asking.
+
+## What it does
+
+GPT with EFI, BIOS boot, optional swap and ZFS partitions; a pool with a boot environment
+layout and separate datasets for `/home`, `/var/log` and update state; FreeBSD's minimal set
+and kernel with META's packages through `pkg`; deferred package triggers; both BIOS and UEFI
+boot code; configuration; the user.
+
+The password goes to `pw` on standard input and appears in no file, argument or log. Root is
+locked, sudo is installed and its rules are checked, and single-user mode asks for
+authentication.
+
+If a step fails, everything is unmounted and the pool exported. The disk has been erased by
+then, but is free for another attempt.
+
+With an X11 desktop, the X server is configured for the firmware's framebuffer, because
+without a kernel graphics driver it finds two framebuffer drivers and refuses to choose.
+Remove `/usr/local/etc/X11/xorg.conf.d/10-meta-framebuffer.conf` after installing drm-kmod.
 
 ## Unattended
 
 ```sh
-meta-installer --answers installer/answers.example.toml
+meta-installer --answers installer/answers.example.toml > plan.json
+echo "$PASSWORD" | meta-install-run --plan plan.json --confirm ada0 --password-stdin \
+    --repositories /path/to/pkg/repos
 ```
 
-prints the plan as JSON. Answer files cannot contain passwords.
+Answer files and plans cannot contain passwords.
 
-## Carrying out a plan
+## Not supported
 
-PLANNED. Requirements for that code:
+| Item | Status |
+|---|---|
+| UFS | PLANNED |
+| Disk encryption | RESEARCH REQUIRED |
+| Custom partitioning, dual boot, several disks | PLANNED |
+| GRUB | RESEARCH REQUIRED |
+| Creating an edition root during installation | PLANNED |
 
-1. A separate program that takes a plan, so the interface stays unprivileged.
-2. Confirmation by typing the disk's name, after showing its size, model and partitions.
-3. Refusal when the disk has mounted or imported filesystems.
-4. FreeBSD's tools (`gpart`, `zpool`, `zfs`, `bsdinstall` parts, `pkg -r`), not new ones.
-5. Passwords passed to `pw` on standard input.
-6. Tests against file-backed virtual disks only, until proven.
+An edition chosen during installation is created after the first boot with
+`meta-compat create`.
 
-## Testing
+## Evidence
 
-The interface was driven through tmux on FreeBSD 15.1-RELEASE-p7, from start to a saved
-plan. Automated tests render every screen at 80x25 and at extreme sizes.
+`tests/vm/suite.sh m5`: refusals, installation, inspection of the result, and boot with BIOS
+and UEFI to a login with wrong and right passwords, sudo, locale, timezone, swap, network and
+package integrity. `suite.sh m12` adds XFCE with a graphical login. Not tested on physical
+disks.

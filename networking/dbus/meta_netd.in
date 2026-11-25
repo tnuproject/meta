@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# PROVIDE: meta_netd
+# REQUIRE: dbus NETWORKING
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="meta_netd"
+desc="NetworkManager-compatible service"
+rcvar="meta_netd_enable"
+pidfile="/var/run/${name}.pid"
+command="/usr/sbin/daemon"
+command_args="-f -r -P ${pidfile} -t ${name} -S /usr/local/bin/meta-netd"
+procname="/usr/sbin/daemon"
+
+load_rc_config $name
+: ${meta_netd_enable:="NO"}
+run_rc_command "$1"

@@ -1,0 +1,9 @@
+# Place in /usr/local/etc/pkg/repos. @URL@ is the repository; the public key comes
+# from the installation medium, never from the repository itself.
+META: {
+  url: "@URL@",
+  signature_type: "pubkey",
+  pubkey: "/usr/local/etc/meta/trust/packages.pub",
+  priority: -10,
+  enabled: yes
+}

@@ -1,8 +1,8 @@
 # Desktops
 
-Status: PLANNED. [desktops.toml](desktops.toml) lists the packages the installer would
-install and whether they existed in FreeBSD's repository at the last check. No desktop has
-been started on META.
+Status: EXPERIMENTAL. [desktops.toml](desktops.toml) lists the packages the installer
+installs and whether they existed in FreeBSD's repository at the last check. Only XFCE has been
+installed and used, in a virtual machine without graphics acceleration.
 
 Check availability on FreeBSD:
 

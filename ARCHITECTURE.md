@@ -8,17 +8,17 @@ replaced only when a concrete META feature cannot be built on it.
 | Layer | Provided by | META's part | Status |
 |---|---|---|---|
 | Kernel, scheduler, memory | FreeBSD | Kernel configuration with a META identity | EXPERIMENTAL |
-| Filesystems | FreeBSD (ZFS, UFS) | Layout conventions | PLANNED |
+| Filesystems | FreeBSD (ZFS, UFS) | Layout | EXPERIMENTAL |
 | Network stack | FreeBSD | None | PLANNED |
-| Network management | META Network | D-Bus service, backend | RESEARCH REQUIRED |
+| Network management | META Network | D-Bus service for wired networks | EXPERIMENTAL |
 | Drivers | FreeBSD, LinuxKPI | EDS detection and database | EXPERIMENTAL |
 | Linux system calls | FreeBSD Linuxulator | None | PLANNED |
 | Linux programs | linux2BSD | Inspection, runtime choice, diagnostics | EXPERIMENTAL |
 | Host packages | FreeBSD pkg | META packages, override policy | EXPERIMENTAL |
-| Linux packages | APT, Pacman in their own roots | Isolation, metadata packages | PLANNED |
-| Updates | metaupd | Verification, download, rollback | EXPERIMENTAL |
-| Installation | meta-installer | Interface and plan | EXPERIMENTAL |
-| Desktops | FreeBSD packages | Package sets | PLANNED |
+| Linux packages | APT, Pacman in their own roots | Isolation, meta-compat | EXPERIMENTAL |
+| Updates | metaupd | Verification, installation, rollback | EXPERIMENTAL |
+| Installation | meta-installer | Interface, installation, image | EXPERIMENTAL |
+| Desktops | FreeBSD packages | Package sets, Update Manager | EXPERIMENTAL |
 
 ## Principles
 
@@ -65,6 +65,8 @@ meta-common
                      '- metaupd-verify -----------+
                                                   '-- metaupd-release
 meta-pkg-policy (no dependencies on other META crates)
+meta-compat = common + pkg-policy; used by linux2bsd
+meta-netd = net + meta-dbus; metaupdd = metaupd + meta-dbus
 meta = common + net + eds + linux2bsd + pkg-policy
 ```
 

@@ -29,7 +29,10 @@ impl ReleaseSource for DirectorySource {
 
     fn releases(&self) -> Result<Vec<Release>, SourceError> {
         let mut releases = Vec::new();
-        for entry in fs::read_dir(&self.directory)? {
+        let entries = fs::read_dir(&self.directory).map_err(|error| {
+            SourceError::Transport(format!("{}: {error}", self.directory.display()))
+        })?;
+        for entry in entries {
             let entry = entry?;
             if !entry.file_type()?.is_dir() {
                 continue;

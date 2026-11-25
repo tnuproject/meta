@@ -20,7 +20,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKIP = {".git", "target", ".claude", "dist", "build", "fixtures"}
 LABELS = {"IMPLEMENTED", "EXPERIMENTAL", "IN DEVELOPMENT", "PLANNED", "RESEARCH REQUIRED"}
 TEXT_SUFFIXES = {
-    ".md", ".rs", ".toml", ".yml", ".sh", ".py", ".xml", ".in", ".jsonc", ".txt", ".example",
+    ".md", ".rs", ".serial", ".toml", ".yml", ".sh", ".py", ".xml", ".in", ".jsonc", ".txt", ".example",
 }
 # Written so that this file does not contain the forbidden name itself.
 FORBIDDEN = re.compile("META" + r"[ -]OS\b")

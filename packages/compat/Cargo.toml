@@ -1,0 +1,26 @@
+[package]
+name = "meta-compat"
+description = "Creates and manages Linux compatibility roots"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+clap.workspace = true
+hex.workspace = true
+meta-common.workspace = true
+meta-pkg-policy.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+rustix.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

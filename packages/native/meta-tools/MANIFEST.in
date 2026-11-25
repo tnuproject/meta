@@ -2,7 +2,7 @@ name: meta-tools
 origin: meta/meta-tools
 version: "@VERSION@"
 comment: "META command line tools"
-desc: "Prototype command line tools of the META project: meta, linux2bsd, meta-eds, meta-installer (plan only) and metaupd (does not install updates)."
+desc: "meta, linux2bsd, meta-eds, meta-compat and metaupd."
 maintainer: "packages@meta.invalid"
 www: "https://github.com/tnuproject/meta"
 categories: [sysutils]

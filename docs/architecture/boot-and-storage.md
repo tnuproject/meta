@@ -1,6 +1,6 @@
 # Boot and storage
 
-Status: PLANNED. Nothing here is created by META yet. Items marked *observed* were
+Status: EXPERIMENTAL. `meta-install-run` creates this layout. Items marked *observed* were
 seen on FreeBSD 15.1-RELEASE-p7.
 
 ## Disk layout
@@ -28,8 +28,9 @@ updates cannot be rolled back; the installer says so.
 
 *Observed:* in FreeBSD's default layout `/var/db` is inside the boot environment.
 Rolling back would therefore also revert metaupd's record of the newest release it has
-seen, which is what prevents downgrades, and its history. META needs a separate dataset
-for `/var/db/metaupd`. `meta doctor` warns when it is missing.
+seen, which is what prevents downgrades, and its history. The installer creates a separate
+dataset for `/var/db/metaupd`; without one, metaupd refuses to install and `meta doctor`
+warns.
 
 The consequence is that the state can be newer than the running system. metaupd takes
 the installed version from the system itself, never from the state.
@@ -47,9 +48,8 @@ changes as not covered.
 permanent one. A kernel built from [kernel/conf/META](../../kernel/conf/META) was booted
 the same way.
 
-This gives updates a natural safety net: activate once, boot, check health, and only
-then activate permanently. A system that fails to boot returns to the old environment at
-the next reset.
+Updates rely on this: activate once, boot, check, and only then activate permanently. An
+update whose kernel panicked returned to the old environment by itself.
 
 ## What boot environments do not cover
 

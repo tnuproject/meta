@@ -5,11 +5,13 @@ use serde::Serialize;
 use crate::catalog::desktops;
 use crate::config::{Bootloader, EditionChoice, Filesystem, InstallConfig, NetworkMode};
 
+pub const FORMAT: &str = "meta-install-plan-v1";
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Plan {
     pub format: &'static str,
     pub meta_version: &'static str,
-    /// Always false: this version cannot carry a plan out.
+    /// Whether meta-install-run supports every choice.
     pub executable: bool,
     pub configuration: InstallConfig,
     pub user_password_set: bool,
@@ -31,9 +33,9 @@ impl Plan {
             return Err(problems);
         }
         Ok(Self {
-            format: "meta-install-plan-v1",
+            format: FORMAT,
             meta_version: meta_common::VERSION,
-            executable: false,
+            executable: unsupported(config).is_empty(),
             configuration: config.clone(),
             user_password_set: !config.user.password.is_empty(),
             steps: steps(config),
@@ -44,6 +46,21 @@ impl Plan {
     pub fn to_json(&self) -> String {
         serde_json::to_string_pretty(self).expect("plans contain only serializable values")
     }
+}
+
+/// Choices that meta-install-run cannot carry out.
+pub fn unsupported(config: &InstallConfig) -> Vec<String> {
+    let mut reasons = Vec::new();
+    if !crate::execute::supported_filesystem(config) {
+        reasons.push("installing on UFS".to_owned());
+    }
+    if config.encrypt {
+        reasons.push("disk encryption".to_owned());
+    }
+    if config.bootloader == Bootloader::GrubChainload {
+        reasons.push("GRUB".to_owned());
+    }
+    reasons
 }
 
 fn steps(config: &InstallConfig) -> Vec<Step> {
@@ -101,15 +118,20 @@ fn steps(config: &InstallConfig) -> Vec<Step> {
     }
     add(false, "lock the root password".into());
     if config.linux_compat {
-        add(
-            false,
-            "enable Linuxulator and install a Linux userland".into(),
-        );
+        add(false, "enable Linuxulator".into());
     }
     match config.edition {
         EditionChoice::None => {}
-        EditionChoice::Debian => add(false, "create the Debian compatibility root".into()),
-        EditionChoice::Arch => add(false, "create the Arch compatibility root".into()),
+        EditionChoice::Debian => {
+            add(
+                false,
+                "after the first boot: meta-compat create debian".into(),
+            );
+        }
+        EditionChoice::Arch => add(
+            false,
+            "after the first boot: meta-compat create arch".into(),
+        ),
     }
     if let Some(desktop) = desktops()
         .into_iter()
@@ -144,8 +166,10 @@ fn steps(config: &InstallConfig) -> Vec<Step> {
 }
 
 fn warnings(config: &InstallConfig) -> Vec<String> {
-    let mut warnings =
-        vec!["This version only plans installations; it cannot perform them.".to_owned()];
+    let mut warnings: Vec<String> = unsupported(config)
+        .into_iter()
+        .map(|reason| format!("This version cannot carry out this plan: {reason}."))
+        .collect();
     if config.filesystem == Filesystem::Ufs {
         warnings.push("UFS has no boot environments, so metaupd could not roll back.".into());
     }
@@ -185,8 +209,13 @@ mod tests {
     use crate::config::tests::valid;
 
     #[test]
-    fn plans_are_never_executable() {
-        assert!(!Plan::build(&valid()).unwrap().executable);
+    fn only_supported_plans_are_executable() {
+        assert!(Plan::build(&valid()).unwrap().executable);
+        let mut config = valid();
+        config.encrypt = true;
+        let plan = Plan::build(&config).unwrap();
+        assert!(!plan.executable);
+        assert!(plan.warnings.iter().any(|w| w.contains("cannot carry out")));
     }
 
     #[test]

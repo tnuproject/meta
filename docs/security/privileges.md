@@ -1,10 +1,10 @@
 # Privileges
 
-Status: PLANNED for the installed system.
+Status: EXPERIMENTAL. The installer sets this up.
 
 ## sudo
 
-sudo is always installed. The planned configuration:
+sudo is always installed, with:
 
 ```
 Defaults use_pty
@@ -23,7 +23,10 @@ and single-user mode asks for authentication (`console` marked insecure in `/etc
 |---|---|
 | `meta`, `linux2bsd`, `meta-eds scan` | None; USB details need root |
 | `meta-installer` | None; it only plans |
-| `metaupd check`, `download`, `channel`, `rollback` | root, for `/var/db/metaupd` |
+| `meta-install-run` | root; erases the confirmed disk |
+| `meta-compat` | root; runs commands as the user who called sudo |
+| `meta-netd`, `metaupdd` | root; callers are authorized by polkit |
+| `metaupd check`, `download`, `install`, `channel`, `rollback` | root |
 | `metaupd status`, `history` | None |
 | `metaupd-release` | None; never on client systems |
 

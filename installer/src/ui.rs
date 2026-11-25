@@ -37,7 +37,7 @@ fn bold() -> Style {
 }
 
 fn draw_header(frame: &mut Frame<'_>, area: Rect, app: &App) {
-    let title = format!(" {PROJECT} {VERSION} \"{CODENAME}\" installer: plan only ");
+    let title = format!(" {PROJECT} {VERSION} \"{CODENAME}\" installer ");
     let step = format!("Step {} of {}", app.screen_index + 1, Screen::ALL.len());
     let header = Paragraph::new(step).block(Block::new().borders(Borders::ALL).title(title));
     frame.render_widget(header, area);
@@ -132,8 +132,8 @@ fn details(app: &App) -> Vec<Line<'static>> {
         Screen::Welcome => vec![
             text(TAGLINE),
             Line::default(),
-            text("This prototype collects choices and saves an installation plan."),
-            text("It never changes a disk."),
+            text("This interface collects choices and saves an installation plan."),
+            text("Nothing is written to a disk without a separate confirmation."),
         ],
         Screen::Disk => {
             let mut lines = vec![text("Detected disks:")];
@@ -294,7 +294,7 @@ mod tests {
             app.screen_index = index;
             let text = render(&mut app, 80, 25);
             assert!(text.contains(screen.title()), "{screen:?}\n{text}");
-            assert!(text.contains("plan only"));
+            assert!(text.contains("installer"));
         }
     }
 

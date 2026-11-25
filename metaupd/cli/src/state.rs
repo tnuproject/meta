@@ -6,6 +6,7 @@ use metaupd_metadata::{Channel, Timestamp};
 use metaupd_verify::HighWater;
 use serde::{Deserialize, Serialize};
 
+use crate::apply::Pending;
 use crate::store::{Paths, StoreError, read_limited, write_atomic};
 
 const STATE_SCHEMA: u32 = 1;
@@ -21,6 +22,9 @@ pub struct State {
     /// Newest manifest seen per publishing channel.
     pub high_water: BTreeMap<Channel, HighWater>,
     pub last_check: Option<Timestamp>,
+    /// Update activated for one boot and not yet confirmed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pending: Option<Pending>,
 }
 
 impl Default for State {
@@ -31,6 +35,7 @@ impl Default for State {
             root_version: 0,
             high_water: BTreeMap::new(),
             last_check: None,
+            pending: None,
         }
     }
 }

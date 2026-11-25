@@ -1,5 +1,5 @@
 //! Builds signed release directories with throwaway keys.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, dead_code)]
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -131,6 +131,7 @@ impl World {
             now: now(),
             host: self.host.clone(),
             edition: None,
+            require_separate_state: false,
         }
     }
 

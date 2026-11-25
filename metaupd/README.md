@@ -1,7 +1,6 @@
 # metaupd
 
-Status: EXPERIMENTAL; checks, verifies, downloads, plans and rolls back, and does not apply
-updates.
+Status: EXPERIMENTAL.
 
 | Directory | Contents | Status |
 |---|---|---|
@@ -13,8 +12,8 @@ updates.
 | [release-tool](release-tool) | `metaupd-release` | EXPERIMENTAL |
 | [release](release) | Release description example | EXPERIMENTAL |
 | [tests](tests) | Integration tests | EXPERIMENTAL |
-| [dbus](dbus) | Interface definition | PLANNED |
-| [daemon](daemon/README.md) | Daemon | PLANNED |
+| [dbus](dbus) | Interface, bus and polkit policy | EXPERIMENTAL |
+| [daemon](daemon/README.md) | metaupdd | EXPERIMENTAL |
 
 Documents: [metaupd](../docs/updates/metaupd.md),
 [metadata format](../docs/updates/metadata-format.md),

@@ -57,6 +57,17 @@ pub enum NetworkMode {
 pub struct Password(Zeroizing<String>);
 
 impl Password {
+    pub fn from_text(text: &str) -> Self {
+        let mut password = Self::default();
+        text.chars().for_each(|c| password.push(c));
+        password
+    }
+
+    /// The password itself, for handing to another program's standard input.
+    pub fn expose(&self) -> &str {
+        &self.0
+    }
+
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

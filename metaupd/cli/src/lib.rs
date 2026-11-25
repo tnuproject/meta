@@ -1,5 +1,6 @@
 //! metaupd engine: the single backend every interface uses.
 
+pub mod apply;
 pub mod engine;
 pub mod history;
 pub mod plan;

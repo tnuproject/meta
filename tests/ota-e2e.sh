@@ -19,6 +19,10 @@ fail() {
 	exit 1
 }
 
+for program in metaupd metaupd-release; do
+	[ -f "$bin/$program" ] || [ -f "$bin/$program.exe" ] || fail "$bin/$program has not been built"
+done
+
 # expect_failure DESCRIPTION PATTERN COMMAND...
 expect_failure() {
 	description=$1

@@ -52,7 +52,7 @@ cargo build --workspace --locked
 ## Packages
 
 ```sh
-sh packages/native/build-pkg.sh -b target/release -o dist
+sh packages/native/build-packages.sh -b target/release -o dist -V 26.0-alpha1
 sh packages/debian/build-deb.sh dist
 sh packages/arch/build-arch.sh dist
 ```
@@ -60,20 +60,21 @@ sh packages/arch/build-arch.sh dist
 ## Kernel
 
 ```sh
-pkg install -r FreeBSD-base FreeBSD-src FreeBSD-src-sys
-sh scripts/build-kernel.sh -s /usr/src -o /var/tmp/meta-obj
+sh scripts/fetch-kernel-source.sh /var/tmp/meta-src
+sh scripts/build-kernel.sh -s /var/tmp/meta-src -o /var/tmp/meta-obj
+sh packages/native/build-kernel-stage.sh -s /var/tmp/meta-src -o /var/tmp/meta-obj -d /var/tmp/stage
+sh packages/native/build-packages.sh -b target/release -o dist -V 26.0-alpha1 \
+    -k /var/tmp/stage meta-kernel
 ```
 
-The script never installs. It took about four minutes with twelve virtual CPUs. To try the
-kernel without risk, install it into a boot environment under another name:
+None of these touches the running system. The build took about four minutes with twelve virtual
+CPUs. To try the kernel without risk, install the package into a boot environment:
 
 ```sh
 bectl create meta-kernel
 bectl mount meta-kernel /mnt
-cd /usr/src && env MAKEOBJDIRPREFIX=/var/tmp/meta-obj make installkernel \
-    KERNCONFDIR=/path/to/meta/kernel/conf KERNCONF=META \
-    DESTDIR=/mnt INSTKERNNAME=kernel.META
-echo 'kernel="kernel.META"' >> /mnt/boot/loader.conf
+cp dist/meta-kernel-*.pkg /mnt/tmp/
+pkg -c /mnt add /tmp/meta-kernel-26.0.a1.pkg
 bectl umount meta-kernel
 bectl activate -t meta-kernel
 ```

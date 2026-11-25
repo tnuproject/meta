@@ -3,6 +3,7 @@ use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
 use meta_common::{CODENAME, Platform, SystemRunner};
+use metaupd::apply::{self, Confirmation};
 use metaupd::engine::{EngineError, host_from_platform};
 use metaupd::history;
 use metaupd::state::State;
@@ -40,14 +41,19 @@ enum Command {
     },
     /// Download and verify the newest release
     Download,
-    /// Verify a downloaded release and show its installation plan
+    /// Install a downloaded release into a new boot environment
     Install {
         /// Version to install; defaults to the newest downloaded one
         version: Option<String>,
         /// Only show what would happen
         #[arg(long)]
         dry_run: bool,
+        /// Confirm the change
+        #[arg(long, conflicts_with = "dry_run")]
+        yes: bool,
     },
+    /// After a reboot, make a healthy update permanent
+    Confirm,
     /// Show updater status
     Status {
         #[arg(long)]
@@ -109,11 +115,17 @@ fn run(cli: Cli) -> Result<(), EngineError> {
         now: Timestamp::now(),
         host,
         edition,
+        require_separate_state: true,
     };
     match cli.command.unwrap_or(Command::Status { json: false }) {
         Command::Check { json } => check(&engine, json),
         Command::Download => download(&engine),
-        Command::Install { version, dry_run } => install(&engine, version, dry_run),
+        Command::Install {
+            version,
+            dry_run,
+            yes,
+        } => install(&engine, version, dry_run, yes),
+        Command::Confirm => confirm(&engine),
         Command::Status { json } => status(&engine, json),
         Command::History => show_history(&engine),
         Command::Rollback {
@@ -208,7 +220,12 @@ fn download(engine: &Engine<'_>) -> Result<(), EngineError> {
     Ok(())
 }
 
-fn install(engine: &Engine<'_>, version: Option<String>, dry_run: bool) -> Result<(), EngineError> {
+fn install(
+    engine: &Engine<'_>,
+    version: Option<String>,
+    dry_run: bool,
+    yes: bool,
+) -> Result<(), EngineError> {
     let version = match version {
         Some(version) => version,
         None => engine
@@ -241,9 +258,43 @@ fn install(engine: &Engine<'_>, version: Option<String>, dry_run: bool) -> Resul
     if dry_run {
         return Ok(());
     }
-    Err(EngineError::Unsupported(
-        "applying updates is not implemented in this prototype; nothing was changed".into(),
-    ))
+    if !yes {
+        println!("Nothing was changed. Run again with --yes to install.");
+        return Ok(());
+    }
+    let pending = apply::apply(engine, &staged)?;
+    println!(
+        "META {version} is installed in {}.",
+        pending.boot_environment
+    );
+    println!(
+        "Reboot to try it. Unless it is confirmed, the boot after that returns to {}.",
+        pending.previous
+    );
+    Ok(())
+}
+
+fn confirm(engine: &Engine<'_>) -> Result<(), EngineError> {
+    match apply::confirm(engine)? {
+        Confirmation::Nothing => println!("No update is waiting for confirmation."),
+        Confirmation::Confirmed(pending) => {
+            println!(
+                "META {} is now permanent in {}.",
+                pending.version, pending.boot_environment
+            );
+        }
+        Confirmation::Unhealthy(pending, reason) => {
+            println!("META {} was not confirmed: {reason}.", pending.version);
+            println!("The next boot returns to {}.", pending.previous);
+        }
+        Confirmation::Reverted(pending) => {
+            println!(
+                "META {} did not stay active; the previous system is running.",
+                pending.version
+            );
+        }
+    }
+    Ok(())
 }
 
 fn status(engine: &Engine<'_>, json: bool) -> Result<(), EngineError> {
@@ -260,6 +311,7 @@ fn status(engine: &Engine<'_>, json: bool) -> Result<(), EngineError> {
             "trusted_root_version": trust.as_ref().ok().map(|root| root.version()),
             "trust_error": trust.as_ref().err().map(ToString::to_string),
             "staged": staged,
+            "pending": state.pending,
             "boot_environments": environments.as_ref().ok(),
         });
         println!("{value:#}");
@@ -294,6 +346,12 @@ fn status(engine: &Engine<'_>, json: bool) -> Result<(), EngineError> {
             staged.join(", ")
         }
     );
+    if let Some(pending) = &state.pending {
+        println!(
+            "waiting            META {} in {}",
+            pending.version, pending.boot_environment
+        );
+    }
     match environments {
         Ok(list) => println!("boot environments  {}", list.len()),
         Err(error) => println!("boot environments  {error}"),
@@ -307,10 +365,7 @@ fn show_history(engine: &Engine<'_>) -> Result<(), EngineError> {
         println!("No history.");
     }
     for record in &history.records {
-        let action = serde_json::to_value(record.action)
-            .ok()
-            .and_then(|v| v.as_str().map(str::to_owned))
-            .unwrap_or_default();
+        let action = record.action.as_str();
         let outcome = if record.success { "ok" } else { "failed" };
         println!(
             "{}  {action:13}  {outcome:6}  {}",

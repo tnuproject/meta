@@ -43,6 +43,8 @@ pub enum EngineError {
     Sequence(#[from] SequenceError),
     #[error(transparent)]
     Rollback(#[from] RollbackError),
+    #[error(transparent)]
+    Apply(#[from] crate::apply::ApplyError),
     #[error("no update is available")]
     NoUpdate,
     #[error("META {0} has not been downloaded; run `metaupd download`")]
@@ -96,6 +98,9 @@ pub struct Engine<'a> {
     pub now: Timestamp,
     pub host: Host,
     pub edition: Option<Edition>,
+    /// Refuse to install when the state would be reverted by a rollback. Always
+    /// set outside tests.
+    pub require_separate_state: bool,
 }
 
 impl std::fmt::Debug for Engine<'_> {

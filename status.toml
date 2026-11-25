@@ -13,13 +13,31 @@ summary = "Version, platform, hardware, network and compatibility reports"
 id = "linux2bsd"
 name = "linux2BSD"
 status = "EXPERIMENTAL"
-summary = "Identifies Linux programs, resolves libraries and symbol versions, runs supported ones through Linuxulator"
+summary = "Checks Linux programs and runs them through Linuxulator or an edition's jail"
+
+[[component]]
+id = "editions"
+name = "Editions"
+status = "EXPERIMENTAL"
+summary = "Debian and Arch roots: created from signed archives, run, updated, rolled back, removed"
 
 [[component]]
 id = "metaupd"
 name = "metaupd"
 status = "EXPERIMENTAL"
-summary = "Checks, verifies and downloads releases; selects boot environments; does not install updates"
+summary = "Verifies, downloads and installs signed releases into boot environments; rolls back"
+
+[[component]]
+id = "metaupd-dbus"
+name = "metaupd D-Bus"
+status = "EXPERIMENTAL"
+summary = "Update service for desktops, authorized by polkit"
+
+[[component]]
+id = "desktop-updates"
+name = "Desktop updates"
+status = "EXPERIMENTAL"
+summary = "META Update Manager, tested in XFCE; no Discover or GNOME Software plugin"
 
 [[component]]
 id = "release-tool"
@@ -28,16 +46,40 @@ status = "EXPERIMENTAL"
 summary = "Generates, signs and verifies release metadata"
 
 [[component]]
+id = "installer"
+name = "meta-installer"
+status = "EXPERIMENTAL"
+summary = "Installs on a whole disk with ZFS; no UFS, encryption or custom partitioning"
+
+[[component]]
+id = "iso"
+name = "Installation media"
+status = "EXPERIMENTAL"
+summary = "Build script for a BIOS and UEFI image that installs without a network"
+
+[[component]]
 id = "eds"
 name = "EDS"
 status = "EXPERIMENTAL"
 summary = "Detects hardware and reports known support; does not install drivers"
 
 [[component]]
-id = "installer"
-name = "meta-installer"
+id = "network"
+name = "META Network"
 status = "EXPERIMENTAL"
-summary = "Keyboard-driven interface that saves a plan; does not install"
+summary = "NetworkManager-compatible service for wired networks; no Wi-Fi or VPN"
+
+[[component]]
+id = "kernel"
+name = "Kernel build"
+status = "EXPERIMENTAL"
+summary = "FreeBSD GENERIC with a META identity, from a pinned source, as a package"
+
+[[component]]
+id = "native-packages"
+name = "Native packages"
+status = "EXPERIMENTAL"
+summary = "META packages and a signed repository; none is published"
 
 [[component]]
 id = "package-policy"
@@ -46,64 +88,22 @@ status = "EXPERIMENTAL"
 summary = "Isolation and override rules as tested code; not connected to pkg"
 
 [[component]]
-id = "kernel"
-name = "Kernel build"
+id = "desktops"
+name = "Desktops"
 status = "EXPERIMENTAL"
-summary = "FreeBSD GENERIC with a META identity; built and booted in QEMU"
+summary = "XFCE installed and used in a virtual machine; the others are untested"
 
 [[component]]
-id = "network"
-name = "META Network"
-status = "RESEARCH REQUIRED"
-summary = "NetworkManager-compatible D-Bus service; only status reporting exists"
-
-[[component]]
-id = "metaupd-dbus"
-name = "metaupd D-Bus"
-status = "PLANNED"
-summary = "Interface definition only; no daemon"
-
-[[component]]
-id = "editions"
-name = "Editions"
-status = "PLANNED"
-summary = "Debian and Arch compatibility roots; metadata packages only"
-
-[[component]]
-id = "native-packages"
-name = "Native packages"
+id = "jails"
+name = "Containers"
 status = "EXPERIMENTAL"
-summary = "FreeBSD package of the META tools; no repository"
+summary = "Compatibility roots run as jails; no general container support"
 
 [[component]]
 id = "linuxkpi"
 name = "LinuxKPI"
 status = "RESEARCH REQUIRED"
-summary = "Expanded Linux driver compatibility"
-
-[[component]]
-id = "desktops"
-name = "Desktops"
-status = "PLANNED"
-summary = "Package sets recorded; none tested"
-
-[[component]]
-id = "desktop-updates"
-name = "Desktop updates"
-status = "PLANNED"
-summary = "Discover, GNOME Software and META Update Manager integration"
-
-[[component]]
-id = "jails"
-name = "Containers"
-status = "PLANNED"
-summary = "Jail templates for compatibility environments"
-
-[[component]]
-id = "coreutils"
-name = "Core utilities"
-status = "PLANNED"
-summary = "FreeBSD base utilities; no replacements written"
+summary = "Gap analysis tool and one driver family analyzed; no driver work"
 
 [[component]]
 id = "bootloader"
@@ -112,7 +112,7 @@ status = "RESEARCH REQUIRED"
 summary = "FreeBSD's loader is used until GRUB is validated"
 
 [[component]]
-id = "iso"
-name = "Installation media"
+id = "coreutils"
+name = "Core utilities"
 status = "PLANNED"
-summary = "No bootable image exists"
+summary = "FreeBSD base utilities; no replacements written"

@@ -33,7 +33,7 @@ def main():
             elif name.endswith(".json"):
                 kind = "JSON"
                 json.loads(path.read_text(encoding="utf-8"))
-            elif name.endswith(".xml"):
+            elif name.endswith((".xml", ".policy")) or path.parent.name == "dbus" and name.endswith(".conf"):
                 kind = "XML"
                 xml.etree.ElementTree.parse(path)
             else:

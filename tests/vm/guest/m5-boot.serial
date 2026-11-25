@@ -1,0 +1,38 @@
+refuse Mounting from .* failed
+refuse panic:
+refuse Enter full pathname of shell
+expect 180 login:
+send alice
+expect Password:
+send wrong
+expect 30 incorrect|login:
+expect 30 login:
+send root
+expect 30 Password:
+send secret
+expect 30 incorrect
+expect 30 login:
+send alice
+expect 30 Password:
+send secret
+expect 30 [$]
+send echo W:$(hostname):$(id -un):$(groups | tr ' ' ,):$LANG
+expect W:metabox:alice:[a-z,]*wheel[a-z,]*:it_IT.UTF-8
+send sudo -S -k meta doctor; echo R=$?
+expect 30 Password
+send secret
+expect 30 ok +update state +kept outside
+expect 30 R=0
+send date +%Z; bectl list -H; pkg check -sq meta-tools && echo PKG''-OK
+expect CET
+expect default.*NR
+expect 60 PKG-OK
+send metaupd status; meta info | head -8
+expect installed +26.0
+expect trusted root +version 1
+expect installed +META 26.0
+send mount -p | grep -c boot/efi; swapinfo -h | tail -1; sysctl -n machdep.bootmethod
+expect gpt/meta-swap
+expect (BIOS|UEFI)
+send fetch -qo /dev/null https://www.freebsd.org/ && echo NET''-OK
+expect 60 NET-OK

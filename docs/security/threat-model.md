@@ -40,6 +40,12 @@ confidentiality of credentials.
 | State writable by others | Ownership and mode checked | yes |
 | Two updaters at once | Lock file | yes |
 | Unsigned scripts | Format has no script method | yes |
+| Staged file changed before installation | The copy pkg reads is verified | yes |
+| pkg fetching something else during an update | Only the verified copies are visible to it | yes |
+| Update that does not boot | One-time activation | yes |
+| Unprivileged D-Bus caller | polkit, with the caller identified by the bus | yes |
+| Package repository signed by another key | EdDSA signature | yes |
+| Forged distribution archive | Pinned keys, checked before a root exists | partly: not with a forged archive |
 
 ## Accepted limits
 
@@ -51,8 +57,8 @@ confidentiality of credentials.
 - **Clock.** A wrong clock can make valid metadata look expired, or expired metadata valid.
 - **Rollback.** An administrator may return to an older boot environment with known
   vulnerabilities. That is deliberate, and recorded.
-- **State inside the boot environment.** Until a separate dataset exists, rollback also
-  reverts downgrade protection. See
+- **State inside the boot environment.** Without a separate dataset, rollback also reverts
+  downgrade protection. metaupd refuses to install then. See
   [boot and storage](../architecture/boot-and-storage.md#update-state-must-live-outside-the-boot-environment).
 - **Package scripts.** Signed packages can run code as root while being installed.
 - **fetch(1)** follows redirects without insisting on HTTPS. Only confidentiality of the
@@ -66,5 +72,6 @@ files. Linuxulator enlarges the kernel's attack surface and is optional.
 
 ## Installer
 
-Text input reaches privileged tools later, so it is validated on entry. Plans contain no
-secrets.
+Text input reaches privileged tools, so it is validated on entry and again before use. Plans
+contain no secrets. The wrong disk is the main danger: a disk in use is refused, and its name
+must be repeated.

@@ -1,0 +1,11 @@
+name: meta-release
+origin: meta/meta-release
+version: "@VERSION@"
+comment: "META release identity"
+desc: "Identifies the system as META. metaupd takes the installed version from it."
+maintainer: "packages@meta.invalid"
+www: "https://github.com/tnuproject/meta"
+categories: [sysutils]
+licenselogic: single
+licenses: [BSD2CLAUSE]
+prefix: /

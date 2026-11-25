@@ -23,6 +23,11 @@ impl Timestamp {
         Self(now.replace_nanosecond(0).unwrap_or(now))
     }
 
+    /// Seconds since 1970; 0 for anything earlier.
+    pub fn unix_seconds(self) -> u64 {
+        u64::try_from(self.0.unix_timestamp()).unwrap_or(0)
+    }
+
     #[must_use]
     pub fn plus_days(self, days: i64) -> Self {
         Self(self.0.saturating_add(time::Duration::days(days)))

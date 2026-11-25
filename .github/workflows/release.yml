@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
-      package: ${{ steps.version.outputs.package }}
+      packages: ${{ steps.version.outputs.packages }}
     steps:
       - name: Require the main branch
         run: |
@@ -52,16 +52,19 @@ jobs:
           with open("metaupd/release/release.toml", "rb") as file:
               config = tomllib.load(file)
           version = config["version"]
-          packages = [a["name"] for a in config["artifact"] if a["name"].endswith(".pkg")]
           if not re.fullmatch(r"\d+\.\d+(\.\d+)?(-(alpha|beta|rc)\d+)?", version):
               sys.exit(f"invalid version {version!r}")
-          if len(packages) != 1:
-              sys.exit("expected exactly one package artifact")
-          match = re.fullmatch(r"meta-tools-([0-9a-z.]+)\.pkg", packages[0])
-          if not match:
-              sys.exit(f"unexpected package name {packages[0]!r}")
+          names = []
+          for artifact in config["artifact"]:
+              if artifact["name"].endswith(".pkg"):
+                  match = re.fullmatch(r"(meta-[a-z-]+)-([0-9a-z.]+)\.pkg", artifact["name"])
+                  if not match or match[1] == "meta-kernel":
+                      sys.exit(f"unexpected package {artifact['name']!r}")
+                  names.append(match[1])
+          if not names:
+              sys.exit("no packages")
           print(f"version={version}")
-          print(f"package={match[1]}")
+          print(f"packages={' '.join(names)}")
           EOF
 
   build:
@@ -70,7 +73,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      PACKAGE_VERSION: ${{ needs.validate.outputs.package }}
+      META_VERSION: ${{ needs.validate.outputs.version }}
+      PACKAGES: ${{ needs.validate.outputs.packages }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -79,13 +83,14 @@ jobs:
         with:
           release: "15.1"
           usesh: true
-          envs: PACKAGE_VERSION
+          envs: META_VERSION PACKAGES
           prepare: pkg install -y rust
           run: |
             set -e
             cargo test --workspace --locked
             cargo build --workspace --release --locked
-            sh packages/native/build-pkg.sh -b target/release -o dist -v "$PACKAGE_VERSION"
+            # shellcheck disable=SC2086
+            sh packages/native/build-packages.sh -b target/release -o dist -V "$META_VERSION" $PACKAGES
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages

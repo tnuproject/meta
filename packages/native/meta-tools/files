@@ -1,0 +1,7 @@
+0555 @meta /usr/local/bin/meta
+0555 @linux2bsd /usr/local/bin/linux2bsd
+0555 @meta-eds /usr/local/bin/meta-eds
+0555 @meta-compat /usr/local/bin/meta-compat
+0555 @metaupd /usr/local/bin/metaupd
+0555 packages/native/meta-tools/metaupd_confirm.in /usr/local/etc/rc.d/metaupd_confirm
+0444 LICENSE /usr/local/share/licenses/meta-tools/LICENSE

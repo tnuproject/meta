@@ -9,4 +9,4 @@ linux2bsd inspect --json --root /compat/meta/debian ./program
 linux2bsd run ./program arguments
 ```
 
-`inspect` works on any host. `run` needs FreeBSD.
+`inspect` works on any host. `run` needs FreeBSD, and root for programs in an edition's jail.

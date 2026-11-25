@@ -1,9 +1,20 @@
 # Native packages
 
-Status: EXPERIMENTAL.
+Status: EXPERIMENTAL. No repository is published.
 
 pkg is authoritative for the host, and FreeBSD's repositories are used unchanged. META adds
 packages; it does not fork the ports tree.
+
+| Package | Contents |
+|---|---|
+| `meta-tools` | Command line tools and the boot confirmation service |
+| `meta-release` | `/etc/meta-release`, the installed version |
+| `meta-kernel` | The META kernel beside FreeBSD's, as `/boot/kernel.META` |
+| `meta-installer` | Interface and installer |
+| `meta-services` | metaupdd and meta-netd |
+| `meta-update-manager` | Graphical front end |
+
+Services are off until enabled; the installer enables them with a desktop.
 
 ## Building
 
@@ -11,26 +22,29 @@ On FreeBSD:
 
 ```sh
 cargo build --workspace --release --locked
-sh packages/native/build-pkg.sh -b target/release -o dist
-pkg info -F dist/meta-tools-26.0.a0.pkg
+sh packages/native/build-packages.sh -b target/release -o dist -V 26.0-alpha1
+pkg key --create -t eddsa /secure/place/repository.key
+sh packages/native/build-repository.sh -p dist -o repository -k /secure/place/repository.key
 ```
 
-Built, installed, checked with `pkg check -s` and removed on FreeBSD 15.1-RELEASE-p7,
-2026-11-25.
+The key must not be inside the repository directory; the script refuses that.
 
 ## Versions
 
-pkg orders `26.0.a0 < 26.0.a1 < 26.0`, which was confirmed with `pkg version -t`. META
-versions map as `26.0-alpha1` to `26.0.a1`, `beta` to `b` and `rc` to `r`.
+pkg orders `26.0.a1 < 26.0`. META versions map as `26.0-alpha1` to `26.0.a1`, `beta` to `b`
+and `rc` to `r`.
 
 ## Repository
 
-PLANNED. A META repository would be signed with a key of its own, be enabled in addition to
-FreeBSD's, and have a lower priority so it cannot replace FreeBSD packages. `os-release`
-would carry META's identity through a package that owns that file.
+Signed with EdDSA. Clients use [META.conf.in](../../packages/native/META.conf.in) with the
+public key from their installation medium. It has a lower priority than FreeBSD's, so it
+cannot replace FreeBSD packages.
 
-RESEARCH REQUIRED: FreeBSD's base packages own `/etc/os-release` generation, and META must
-not fight them over it.
+`tests/vm/suite.sh m6` installs from it, then tries a repository signed by another key and a
+modified package. Both are refused.
+
+`pkg update` exits with 0 even when a repository's signature is invalid; it removes the
+repository instead. Scripts must not rely on its exit status.
 
 ## Overrides
 

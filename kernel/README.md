@@ -5,9 +5,10 @@ Status: EXPERIMENTAL.
 META uses the FreeBSD kernel. [conf/META](conf/META) is GENERIC with the identity `META`,
 so `uname -v` tells the two apart. It adds no options.
 
-Build it with [scripts/build-kernel.sh](../scripts/build-kernel.sh); see
-[building](../docs/development/building.md#kernel). Built from 15.1-RELEASE-p7 and booted in
-QEMU on 2026-11-25.
+The source is pinned to a commit in [SOURCE](SOURCE). `scripts/fetch-kernel-source.sh` fetches
+it, [scripts/build-kernel.sh](../scripts/build-kernel.sh) builds it, and the `meta-kernel`
+package installs it beside FreeBSD's as `/boot/kernel.META`. `tests/vm/suite.sh m1` does all of
+this and boots the result. Last run on 2026-11-25, in QEMU.
 
 ## Adding an option
 
@@ -18,6 +19,6 @@ is preferred to a compiled-in option.
 
 | Point | Status |
 |---|---|
-| Building and booting in CI | PLANNED |
-| Kernel package that coexists with FreeBSD's | RESEARCH REQUIRED |
+| Building and booting in CI | IN DEVELOPMENT |
+| Moving the pin to every security release | PLANNED |
 | Whether a separate kernel is worth maintaining at all, as GENERIC already suffices | RESEARCH REQUIRED |

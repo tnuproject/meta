@@ -7,6 +7,7 @@ use linux2bsd::{
     Database, Decision, Distribution, Linuxulator, Report, analyze, discover, inspect,
 };
 use meta_common::{Platform, SystemRunner};
+use meta_compat::Root;
 
 #[derive(Parser)]
 #[command(
@@ -120,10 +121,7 @@ fn print_report(report: &Report) {
         Decision::Native => "runs natively".to_owned(),
         Decision::Linuxulator { root } => format!("Linuxulator with {}", root.display()),
         Decision::OtherRoot { root } => {
-            format!(
-                "needs {} (running from it is not implemented)",
-                root.display()
-            )
+            format!("in the jail at {}", root.display())
         }
         Decision::NotRunnable => "cannot run".to_owned(),
     };
@@ -169,15 +167,41 @@ fn run_command(program: &Path, arguments: &[String]) -> Result<ExitCode, String>
     let report = report_for(program, None)?;
     match &report.decision {
         Decision::Native | Decision::Linuxulator { .. } => execute(program, arguments),
-        Decision::OtherRoot { root } => Err(format!(
-            "this program needs {}; running programs from other roots is not implemented",
-            root.display()
-        )),
+        Decision::OtherRoot { root } => execute_in_root(root, program, arguments),
         Decision::NotRunnable => {
             print_report(&report);
             Err("not started".to_owned())
         }
     }
+}
+
+/// Starts the program in the jail of an edition root, as the calling user.
+fn execute_in_root(root: &Path, program: &Path, arguments: &[String]) -> Result<ExitCode, String> {
+    let runner = SystemRunner;
+    let roots = Root::all(&runner).map_err(|e| e.to_string())?;
+    let edition = roots
+        .iter()
+        .find(|candidate| Path::new(candidate.path()) == root)
+        .ok_or_else(|| format!("{} is not managed by meta-compat", root.display()))?;
+    let program = std::path::absolute(program).map_err(|e| e.to_string())?;
+    let inside = edition.inside(&program.to_string_lossy()).ok_or_else(|| {
+        format!(
+            "{} is not visible inside {}; move it below /home or /tmp",
+            program.display(),
+            root.display()
+        )
+    })?;
+    let tool = std::env::current_exe()
+        .map_err(|e| e.to_string())?
+        .with_file_name("meta-compat");
+    let mut args = vec![
+        "exec".to_owned(),
+        edition.edition.id.clone(),
+        "--".to_owned(),
+        inside,
+    ];
+    args.extend(arguments.iter().cloned());
+    execute(&tool, &args)
 }
 
 /// Replaces this process. The kernel selects the Linux ABI by itself.

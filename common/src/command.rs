@@ -54,6 +54,20 @@ pub trait CommandRunner {
             })
         }
     }
+
+    /// Runs a command with `input` on its standard input, for secrets that must
+    /// not appear in arguments. Runners without real processes do not support it.
+    fn feed(&self, program: &str, args: &[&str], input: &[u8]) -> Result<(), CommandError> {
+        let _ = (args, input);
+        Err(CommandError::NotFound {
+            program: program.to_owned(),
+        })
+    }
+
+    /// Runs a long command with its output visible to the user.
+    fn inherit(&self, program: &str, args: &[&str]) -> Result<(), CommandError> {
+        self.stdout(program, args).map(drop)
+    }
 }
 
 /// Runs real commands with a fixed locale.
@@ -81,6 +95,61 @@ impl CommandRunner for SystemRunner {
             stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
             stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
         })
+    }
+
+    fn feed(&self, program: &str, args: &[&str], input: &[u8]) -> Result<(), CommandError> {
+        use std::io::Write;
+        let io = |source| CommandError::Io {
+            program: program.to_owned(),
+            source,
+        };
+        let mut child = Command::new(program)
+            .args(args)
+            .env("LC_ALL", "C")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(io)?;
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin.write_all(input).map_err(io)?;
+        }
+        let output = child.wait_with_output().map_err(io)?;
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(CommandError::Failed {
+                program: program.to_owned(),
+                code: output.status.code().unwrap_or(-1),
+                stderr: String::from_utf8_lossy(&output.stderr).trim().to_owned(),
+            })
+        }
+    }
+
+    fn inherit(&self, program: &str, args: &[&str]) -> Result<(), CommandError> {
+        let status = Command::new(program)
+            .args(args)
+            .env("LC_ALL", "C")
+            .stdin(Stdio::null())
+            .status()
+            .map_err(|source| match source.kind() {
+                std::io::ErrorKind::NotFound => CommandError::NotFound {
+                    program: program.to_owned(),
+                },
+                _ => CommandError::Io {
+                    program: program.to_owned(),
+                    source,
+                },
+            })?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(CommandError::Failed {
+                program: program.to_owned(),
+                code: status.code().unwrap_or(-1),
+                stderr: "see its output above".to_owned(),
+            })
+        }
     }
 }
 

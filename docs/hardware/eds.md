@@ -72,6 +72,11 @@ did not, entries are shown as candidates.
 | Sensors, power management | Not covered | RESEARCH REQUIRED |
 | Brightness | Documented | EXPERIMENTAL |
 
+## Until drivers are installed
+
+With an X11 desktop the installer configures the firmware's framebuffer; see
+[installer](../installation/installer.md#what-it-does).
+
 ## Installing, when it exists
 
 1. Detect, and select validated entries only.

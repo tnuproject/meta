@@ -7,7 +7,10 @@
 | Unit tests | In each crate |
 | ELF identification and decisions, including every truncation and byte corruption of a sample | `linux2bsd/tests/elf.rs` |
 | Update attacks and recovery | `metaupd/tests/tests/updates.rs` |
+| Ordering and cleanup of update installation | `metaupd/tests/tests/apply.rs` |
+| Refusals and cleanup of the installer | `installer/src/execute.rs` |
 | OTA tools end to end | `tests/ota-e2e.sh` |
+| Whole milestones on FreeBSD | `tests/vm` |
 | Interface rendering at several sizes | `installer/src/ui.rs` |
 
 Files under `fixtures/` are output captured from FreeBSD 15.1-RELEASE-p7 in QEMU, and are
@@ -15,30 +18,8 @@ kept unmodified.
 
 ## On FreeBSD
 
-Use a virtual machine with a ZFS root; several features need boot environments. FreeBSD
-publishes images with cloud-init support, such as
-`FreeBSD-15.1-RELEASE-amd64-BASIC-CLOUDINIT-zfs.qcow2.xz`. Verify the published SHA-512
-before use, and work on an overlay:
-
-```sh
-qemu-img create -f qcow2 -b base.qcow2 -F qcow2 overlay.qcow2 40G
-qemu-system-x86_64 -accel kvm -cpu host -smp 4 -m 8G -display none \
-    -drive file=overlay.qcow2,if=virtio -cdrom seed.iso -serial file:console.log \
-    -netdev user,id=n0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=n0
-```
-
-`seed.iso` is a cloud-init NoCloud image with your SSH key.
-
-In the machine:
-
-```sh
-pkg install rust
-cargo test --workspace --locked
-sh tests/ota-e2e.sh target/debug
-target/debug/meta doctor
-target/debug/meta-eds scan
-target/debug/metaupd rollback --list
-```
+The [virtual machine tests](../../tests/vm/README.md) run whole milestones, including reboots,
+installations and a graphical session.
 
 ## Validation record
 
@@ -55,9 +36,14 @@ target/debug/metaupd rollback --list
 | metaupd permissions | Trust directory with mode 777 | Refused |
 | Rollback | One-time activation, two reboots | Booted the target, then returned |
 | Kernel | META kernel built, installed into a boot environment, booted | `uname` reported META |
-| Native package | Built, added, checked, removed | Passed |
-| Debian root | [Experiment](../packaging/editions.md#what-has-been-tried) | Worked with devfs mounted |
-| Jail template | Started and stopped with the Debian root | Passed |
+| Update installation | `suite.sh m9`: five reboots, one failed update | Passed |
+| Package repository | `suite.sh m6`: wrong key, modified package | Passed |
+| Editions and linux2BSD | `suite.sh m7`: Debian 12 and Arch | Passed |
+| Network service | `suite.sh m4`: nmcli 1.42.4 | Passed |
+| Installation | `suite.sh m5`: BIOS and UEFI | Passed |
+| Installation image | `suite.sh m11`: BIOS and UEFI, no network | Passed |
+| Desktop updates | `suite.sh m10`: XFCE on a virtual display | Passed |
+| Rehearsal | `suite.sh m12`: XFCE login, signed update with kernel, rollback | Passed with BIOS |
 | Installer | Driven through tmux to a saved plan | Passed |
 | Fastfetch | Configuration rendered | FreeBSD logo |
 | Shell scripts | ShellCheck 0.11.0 | No findings |
@@ -67,5 +53,6 @@ target/debug/metaupd rollback --list
 The workspace's tests also pass on Windows 11 (Rust 1.99.0) and on Ubuntu 24.04 under WSL
 (Rust 1.99.0). The minimum version, 1.89, is checked only by CI.
 
-Not done: physical hardware, aarch64, UEFI boot of the META kernel, a desktop session,
-building the Arch package, running the GitHub workflows.
+Not done: physical hardware, aarch64, the desktop rehearsal with UEFI, graphics acceleration,
+Wi-Fi, suspend, desktops other than XFCE, building the Arch package, running the GitHub
+workflows.

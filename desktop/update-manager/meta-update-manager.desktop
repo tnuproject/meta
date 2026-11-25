@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=META Update Manager
+Comment=Update META
+Exec=meta-update-manager
+Icon=system-software-update
+Categories=System;Settings;PackageManager;
+Terminal=false

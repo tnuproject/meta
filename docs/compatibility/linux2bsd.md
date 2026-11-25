@@ -34,7 +34,7 @@ linux2BSD adds the checks around it.
 | Compatibility database | `database.rs` | EXPERIMENTAL |
 | Decision and diagnostics | `decision.rs` | EXPERIMENTAL |
 | Running from the emulation path | `main.rs` | EXPERIMENTAL |
-| Running from another root, in a jail | | PLANNED |
+| Running from another root, in a jail | `main.rs`, [meta-compat](../packaging/editions.md) | EXPERIMENTAL |
 | Installing missing packages | | PLANNED |
 | Automatic start from the shell | | RESEARCH REQUIRED |
 
@@ -61,7 +61,7 @@ are not compared. Libraries a program opens itself with `dlopen` cannot be seen.
 |---|---|
 | native | A FreeBSD program |
 | linuxulator | Runs against the emulation path |
-| other_root | Complete only in another root; starting it there is not implemented |
+| other_root | Complete only in an edition root; started in its jail as the calling user |
 | not_runnable | With a list of problems, each with a fix where one is known |
 
 "Without known problems" is not a promise that a program works.
@@ -114,6 +114,10 @@ sysrc linux_enable=YES
 service linux start
 pkg install linux_base-rl9
 ```
+
+From an edition root, the program must be visible there: inside the root, or below `/home` or
+`/tmp`. Entering a jail needs root, so `sudo linux2bsd run`; the program itself runs as the
+user who called sudo. Tested with Debian and Arch programs by `tests/vm/suite.sh m3`.
 
 ## Known limits of Linuxulator
 

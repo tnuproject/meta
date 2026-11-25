@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=META update notifications
+Exec=meta-update-manager --notify
+Icon=system-software-update
+NoDisplay=true
+X-GNOME-Autostart-Delay=30

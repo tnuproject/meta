@@ -59,13 +59,13 @@ support = "native"
 validation = "validated"
 driver = "vgapci"
 source = "https://man.freebsd.org/cgi/man.cgi?query=vt&sektion=4"
-notes = "Console framebuffer only; no graphics acceleration."
+notes = "No graphics acceleration. The X server works through the VESA driver with BIOS."
 
 [[entry.tested_on]]
 release = "15.1-RELEASE-p7"
 machine = "QEMU i440FX"
 date = "2026-11-25"
-result = "device detected and attached to vgapci; console only"
+result = "console, and an XFCE session through the VESA driver with BIOS; with UEFI not tested"
 
 [[entry.matches]]
 bus = "pci"

@@ -23,6 +23,11 @@ category = "meta-system"
 apply = "pkg-in-boot-environment"
 
 [[artifact]]
+name = "meta-release-26.0.a1.pkg"
+category = "meta-system"
+apply = "pkg-in-boot-environment"
+
+[[artifact]]
 name = "CHANGELOG.md"
 category = "documentation"
 apply = "none"

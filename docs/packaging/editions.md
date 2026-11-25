@@ -1,14 +1,14 @@
 # Packaging and editions
 
-Status: PLANNED, except the policy code, which is EXPERIMENTAL.
+Status: EXPERIMENTAL.
 
 ## Three ecosystems
 
 | Ecosystem | Manager | Owns | Status |
 |---|---|---|---|
 | Native | pkg | The host | EXPERIMENTAL |
-| Debian | APT, dpkg | `/compat/meta/debian` | PLANNED |
-| Arch | Pacman | `/compat/meta/arch` | PLANNED |
+| Debian | APT, dpkg | `/compat/meta/debian` | EXPERIMENTAL |
+| Arch | Pacman | `/compat/meta/arch` | EXPERIMENTAL |
 
 Both editions are the same META with a different compatibility environment. The kernel,
 base system and META tools are identical.
@@ -18,7 +18,7 @@ base system and META tools are identical.
 - Every path has one owner. Anything outside the edition roots belongs to pkg.
 - APT and Pacman run only inside their root, in a jail. They cannot reach the host's
   files, so they cannot overwrite them.
-- pkg never writes into an edition root after creating it.
+- pkg never writes into an edition root.
 - Roots do not overlap each other or system directories.
 - Only `/home` and `/tmp` are shared writable.
 - There is no shared dependency resolution. A Linux package can never satisfy a native
@@ -30,52 +30,61 @@ the [edition definitions](../../packages/editions) against them.
 FreeBSD's ports contain `dpkg` and `pacman`. They are not used: run on the host, they
 would track files next to pkg.
 
-## Bootstrap and trust
+## Trust
 
-Creating a root means trusting the distribution's keys:
+A root is only ever created from authenticated material, and everything is verified before a
+dataset exists.
 
-- Debian: FreeBSD packages `debian-keyring`, which holds developer keys, but not the
-  archive keyring that signs releases. META must ship the archive keyring, obtained and
-  checked independently.
-- Arch: `archlinux-keyring` is needed, and Pacman itself to bootstrap.
-
-A root must never be created without signature checking.
-
-## What has been tried
-
-On FreeBSD 15.1-RELEASE-p7, 2026-11-25, in a disposable virtual machine:
-
-- `debootstrap --variant=minbase bookworm /compat/meta/debian` completed. Signature
-  checking was turned off because the archive keyring was not available. That is
-  acceptable only in an experiment.
-- Inside the root, `apt-get update` failed to verify repositories until devfs was mounted.
-  The message was "gpgv ... required for verification, but neither seems installed",
-  although gpgv was present; `/dev/null` was missing. With devfs mounted, signatures
-  verified normally.
-- `apt-get install hello` worked, and the program ran.
-- With the META prototype package installed, `apt-get install linux-image-amd64` and
-  `grub-efi-amd64` had no installation candidate, as intended.
-- The root started as a jail from the template.
-
-Nothing has been tried with Arch on FreeBSD.
-
-## Prototype packages
-
-| Package | Purpose | Status |
+| Edition | Source | Pinned |
 |---|---|---|
-| `meta-tools` (pkg) | The META commands | EXPERIMENTAL |
-| `meta-compat-environment` (deb) | Marks the root; pins kernels, boot loaders and init systems so APT cannot select them | EXPERIMENTAL |
-| `meta-compat-environment` (Arch) | Marks the root; a hook refuses kernels and boot loaders | EXPERIMENTAL |
+| Debian 12 | debootstrap, `--force-check-gpg` | SHA-256 of both archive keys |
+| Arch | Monthly bootstrap archive | Fingerprint of the release signer |
 
-The Debian package was installed in a real root. The Arch package has not been built
-outside CI definitions, and CI has not run.
+Debian's fingerprints were compared with the keyring package in Ubuntu's archive, which
+Ubuntu signs. Arch's was compared between its download page and its web key directory.
+
+FreeBSD packages `debian-keyring`, which holds developer keys but not the archive keys, so
+META fetches and pins those itself.
+
+Keys expire and are replaced. Updating a pin is a reviewed change to the edition definition.
+
+## Behaviour worth knowing
+
+Found while testing, and handled by `meta-compat`:
+
+- FreeBSD's debootstrap wants a program named `gpgv2`; its gnupg installs `gpgv`. Without
+  it, signatures cannot be checked.
+- APT reports "gpgv ... required for verification, but neither seems installed" when
+  `/dev/null` is missing, although gpgv is present.
+- Arch's archive has Linux file capabilities, which FreeBSD cannot store.
+- Pacman's download sandbox needs Linux features Linuxulator lacks, so it is turned off.
+- The Linux modules must be loaded before a root is created.
+
+## Kernels and boot loaders
+
+Inside a root they have no function. In Debian, an APT pin leaves them without a candidate;
+in Arch, a Pacman hook stops the transaction. Both were tested.
 
 ## Update model
 
-metaupd updates the host. Compatibility roots are updated by their own manager, started by
-a META tool that takes a snapshot first. Rolling back the host leaves roots as they are.
+metaupd updates the host. Roots are updated by their own manager through
+`meta-compat update`, which takes a snapshot first. Rolling back the host leaves roots as
+they are.
 
-## Removing a root
+## Evidence
 
-Follow [the procedure](../compatibility/containers.md#removing-a-root). Deleting a root
-with file systems mounted inside it destroys their contents.
+`tests/vm/suite.sh m7` for Debian 12 and Arch: creation, isolation, running as a user,
+installing a package with verified signatures, refusing a kernel, snapshot, rollback, update,
+refusal to remove a busy root, removal with `/home` intact.
+
+Not tested: graphical programs, large package sets, months of rolling Arch updates.
+
+## Prototype packages
+
+| Package | Status |
+|---|---|
+| `meta-compat-environment` (deb) | EXPERIMENTAL |
+| `meta-compat-environment` (Arch) | EXPERIMENTAL |
+
+They carry the same protections for roots not made by `meta-compat`. The Arch package has
+only been built by CI definitions that have not run.

@@ -1,6 +1,7 @@
 [package]
 name = "meta-installer"
-description = "META installer (plan-only prototype)"
+description = "META installer"
+default-run = "meta-installer"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

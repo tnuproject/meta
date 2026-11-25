@@ -1,0 +1,262 @@
+#!/usr/local/bin/python3
+"""META Update Manager.
+
+A window onto metaupd's D-Bus service. It does not check, download, verify or
+install anything itself, and never asks for a password; polkit does.
+
+--notify checks in the background and shows a notification when there is an update.
+"""
+
+import sys
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gio, GLib, Gtk  # noqa: E402
+
+NAME = "io.github.tnuproject.MetaUpd1"
+PATH = "/io/github/tnuproject/MetaUpd1"
+JOB = "io.github.tnuproject.MetaUpd1.Job"
+
+
+class Service:
+    """metaupd's D-Bus interface."""
+
+    def __init__(self):
+        self.bus = Gio.bus_get_sync(Gio.BusType.SYSTEM)
+        self.proxy = Gio.DBusProxy.new_sync(
+            self.bus, Gio.DBusProxyFlags.NONE, None, NAME, PATH, NAME, None
+        )
+
+    @property
+    def running(self):
+        return self.proxy.get_name_owner() is not None
+
+    def property(self, name):
+        value = self.proxy.get_cached_property(name)
+        return value.unpack() if value else ""
+
+    def call(self, method, arguments, done):
+        """Calls a method; done(result, error message) runs later."""
+
+        def finished(proxy, result):
+            try:
+                value = proxy.call_finish(result)
+            except GLib.Error as error:
+                Gio.DBusError.strip_remote_error(error)
+                done(None, error.message)
+            else:
+                done(value.unpack(), None)
+
+        # Generous: polkit may be waiting for someone to type a password.
+        self.proxy.call(method, arguments, Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION,
+                        300_000, None, finished)
+
+    def job(self, method, arguments, done):
+        """Starts a job; done(success, message) runs when it has finished."""
+        early = {}
+        waiting = {}
+
+        def signal(_bus, _sender, path, _interface, _name, parameters):
+            # The job can finish before the reply naming it arrives.
+            if path == waiting.get("path"):
+                complete(*parameters.unpack())
+            else:
+                early[path] = parameters.unpack()
+
+        subscription = self.bus.signal_subscribe(
+            NAME, JOB, "Finished", None, None, Gio.DBusSignalFlags.NONE, signal
+        )
+
+        def complete(success, message):
+            self.bus.signal_unsubscribe(subscription)
+            done(success, message)
+
+        def started(result, error):
+            if error:
+                complete(False, error)
+                return
+            waiting["path"] = result[0]
+            if result[0] in early:
+                complete(*early[result[0]])
+
+        self.call(method, arguments, started)
+
+
+class Window(Gtk.ApplicationWindow):
+    def __init__(self, application, service):
+        super().__init__(application=application, title="META Update Manager")
+        self.set_default_size(560, 420)
+        self.service = service
+        self.available = {}
+        self.remarks = []
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, margin=18)
+        self.add(box)
+        self.installed = Gtk.Label(xalign=0)
+        self.headline = Gtk.Label(xalign=0, wrap=True)
+        self.details = Gtk.Label(xalign=0, wrap=True, selectable=True)
+        self.spinner = Gtk.Spinner()
+        for widget in (self.installed, self.headline, self.details, self.spinner):
+            box.pack_start(widget, False, False, 0)
+        history = Gtk.ScrolledWindow(vexpand=True)
+        self.history = Gtk.TextView(editable=False, monospace=True)
+        self.history.get_accessible().set_name("History")
+        history.add(self.history)
+        box.pack_start(history, True, True, 0)
+        buttons = Gtk.ButtonBox(layout_style=Gtk.ButtonBoxStyle.END, spacing=6)
+        self.check_button = Gtk.Button.new_with_mnemonic("_Check")
+        self.check_button.connect("clicked", lambda _button: self.check())
+        self.install_button = Gtk.Button.new_with_mnemonic("_Install")
+        self.install_button.connect("clicked", lambda _button: self.download())
+        buttons.add(self.check_button)
+        buttons.add(self.install_button)
+        box.pack_start(buttons, False, False, 0)
+        service.proxy.connect("g-properties-changed", lambda *_: self.show_state())
+        self.show_all()
+        self.show_state()
+        if service.running:
+            self.check()
+        else:
+            self.say("The update service is not running.",
+                     "Enable it with: sysrc metaupdd_enable=YES")
+
+    def say(self, headline, details=""):
+        self.headline.set_markup(f"<b>{GLib.markup_escape_text(headline)}</b>")
+        self.details.set_text(details)
+
+    def show_state(self):
+        installed = self.service.property("InstalledVersion") or "unknown"
+        channel = self.service.property("Channel")
+        self.installed.set_text(f"Installed: META {installed}    Channel: {channel}")
+        if self.service.property("State") == "RebootRequired":
+            self.say("Restart to finish.",
+                     "The new system is used for one start and kept if that works. "
+                     "Otherwise the current one returns by itself.")
+            self.install_button.set_sensitive(False)
+        self.load_history()
+
+    def load_history(self):
+        def loaded(result, error):
+            if error:
+                return
+            lines = []
+            for time, action, success, detail in reversed(result[0]):
+                when = GLib.DateTime.new_from_unix_local(time).format("%F %R")
+                lines.append(f"{when}  {action:<13} {'ok' if success else 'failed':<7} {detail}")
+            self.history.get_buffer().set_text("\n".join(lines))
+
+        if self.service.running:
+            self.service.call("GetHistory", None, loaded)
+
+    def work(self, text):
+        self.say(text)
+        self.spinner.start()
+        self.check_button.set_sensitive(False)
+        self.install_button.set_sensitive(False)
+
+    def rest(self):
+        self.spinner.stop()
+        self.check_button.set_sensitive(True)
+        self.show_state()
+
+    def check(self):
+        def checked(success, message):
+            if success:
+                # Lines after the first say what was rejected, and why.
+                self.remarks = message.split("\n")[1:]
+                self.service.call("GetAvailable", None, loaded)
+            else:
+                self.say("Looking for updates failed.", message)
+                self.rest()
+
+        def loaded(result, error):
+            self.available = result[0] if result else {}
+            self.show_available(error)
+            self.rest()
+
+        self.work("Looking for updates…")
+        self.service.job("Check", None, checked)
+
+    def show_available(self, error):
+        if error:
+            self.say("Looking for updates failed.", error)
+        elif not self.available:
+            headline = "No trustworthy update was found." if self.remarks else "META is up to date."
+            self.say(headline, "\n".join(self.remarks))
+        else:
+            size = GLib.format_size(self.available["size"])
+            problems = self.available["incompatibilities"]
+            lines = [f"Codename {self.available['codename']}, {self.available['channel']} channel, "
+                     f"{size}"]
+            if self.available["reboot"]:
+                lines.append("A restart is needed. The current system is kept for rollback.")
+            lines += [f"Cannot be installed: {problem}" for problem in problems]
+            self.say(f"META {self.available['version']} is available.", "\n".join(lines))
+            self.install_button.set_sensitive(not problems)
+
+    def download(self):
+        version = self.available.get("version")
+        if not version:
+            return
+
+        def downloaded(success, message):
+            if not success:
+                self.say("The download failed.", message)
+                self.rest()
+                return
+            self.work("Installing into a new boot environment…")
+            self.service.job("Install", GLib.Variant("(s)", (version,)), installed)
+
+        def installed(success, message):
+            if not success:
+                self.say("The installation failed. Nothing was changed.", message)
+            self.rest()
+
+        self.work(f"Downloading META {version}…")
+        self.service.job("Download", GLib.Variant("(s)", (version,)), downloaded)
+
+
+class Application(Gtk.Application):
+    def __init__(self):
+        super().__init__(application_id="io.github.tnuproject.MetaUpdateManager")
+
+    def do_activate(self):
+        window = self.get_active_window() or Window(self, Service())
+        window.present()
+
+
+def notify():
+    """Checks once and shows a notification when there is something to install."""
+    service = Service()
+    if not service.running:
+        return 0
+    loop = GLib.MainLoop()
+
+    def show(result, _error):
+        if result and result[0]:
+            session = Gio.bus_get_sync(Gio.BusType.SESSION)
+            session.call_sync(
+                "org.freedesktop.Notifications", "/org/freedesktop/Notifications",
+                "org.freedesktop.Notifications", "Notify",
+                GLib.Variant("(susssasa{sv}i)", (
+                    "META", 0, "system-software-update",
+                    f"META {result[0]['version']} is available",
+                    "Open META Update Manager to install it.", [], {}, -1)),
+                None, Gio.DBusCallFlags.NONE, 5000, None)
+        loop.quit()
+
+    def checked(success, _message):
+        if success:
+            service.call("GetAvailable", None, show)
+        else:
+            loop.quit()
+
+    service.job("Check", None, checked)
+    loop.run()
+    return 0
+
+
+if __name__ == "__main__":
+    if "--notify" in sys.argv[1:]:
+        sys.exit(notify())
+    sys.exit(Application().run([]))

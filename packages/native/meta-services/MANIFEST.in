@@ -1,0 +1,12 @@
+name: meta-services
+origin: meta/meta-services
+version: "@VERSION@"
+comment: "META D-Bus services"
+desc: "meta-netd, a NetworkManager-compatible service, and metaupdd, the update service."
+maintainer: "packages@meta.invalid"
+www: "https://github.com/tnuproject/meta"
+categories: [sysutils]
+licenselogic: single
+licenses: [BSD2CLAUSE]
+prefix: /usr/local
+deps: { dbus: { origin: "devel/dbus", version: "1.16" }, polkit: { origin: "sysutils/polkit", version: "124" } }

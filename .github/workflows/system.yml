@@ -1,0 +1,64 @@
+name: System tests
+
+# Boots FreeBSD in a virtual machine and exercises whole milestones: kernel,
+# packages, updates across reboots, installation, images and compatibility roots.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: system-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  milestone:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: M1 kernel
+            targets: m1
+          - name: M4 network
+            targets: m4
+          - name: M5 installer, M11 image
+            targets: m5 m11
+          - name: M6 package repository
+            targets: m6
+          - name: M7 editions, M3 linux2BSD
+            targets: m7
+          - name: M9 updates, M10 desktop
+            targets: m9 m10
+          - name: M1 kernel, M12 rehearsal
+            targets: m1 m12
+    env:
+      META_VM_CPUS: "4"
+      TARGETS: ${{ matrix.targets }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Virtual machine tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -q -y qemu-system-x86 qemu-utils genisoimage ovmf
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Start FreeBSD
+        run: |
+          bash tests/vm/vm.sh start
+          bash tests/vm/suite.sh build
+      - name: Run
+        run: |
+          # shellcheck disable=SC2086
+          bash tests/vm/suite.sh $TARGETS
+      - name: Console output
+        if: failure()
+        run: tail -c 20000 ~/.cache/meta-freebsd-vm/console*.log

@@ -1,7 +1,6 @@
 # metaupd
 
-Status: EXPERIMENTAL. metaupd checks, verifies, downloads, plans and rolls back. It does
-not apply updates.
+Status: EXPERIMENTAL.
 
 metaupd is the only update engine in META. Desktop programs talk to it; none implements
 its own.
@@ -14,7 +13,8 @@ its own.
 | `metaupd check` | Finds the newest acceptable release | EXPERIMENTAL |
 | `metaupd download` | Downloads and verifies into the staging area | EXPERIMENTAL |
 | `metaupd install --dry-run` | Verifies again and shows the plan | EXPERIMENTAL |
-| `metaupd install` | Exits with 69 after the plan | PLANNED |
+| `metaupd install --yes` | Installs into a new boot environment for one boot | EXPERIMENTAL |
+| `metaupd confirm` | After that boot, makes it permanent or records why not | EXPERIMENTAL |
 | `metaupd history` | Shows the history and checks its integrity | EXPERIMENTAL |
 | `metaupd rollback` | Lists or selects boot environments | EXPERIMENTAL |
 | `metaupd channel` | Shows or sets stable, testing or unstable | EXPERIMENTAL |
@@ -32,44 +32,51 @@ its own.
 | 5. Check architecture, kernel, META and metaupd versions | EXPERIMENTAL |
 | 6. Download what is missing, resuming partial files | EXPERIMENTAL |
 | 7. Verify size and SHA-256 of every artifact | EXPERIMENTAL |
-| 8. Clone and mount a boot environment | PLANNED |
-| 9. Install packages into it with `pkg` | PLANNED |
-| 10. Validate it | PLANNED |
+| 8. Clone and mount a boot environment | EXPERIMENTAL |
+| 9. Install packages into it with `pkg` | EXPERIMENTAL |
+| 10. Validate it | EXPERIMENTAL |
 | 11. Update items outside the boot environment | RESEARCH REQUIRED |
 | 12. Activate it for one boot | EXPERIMENTAL |
-| 13. Confirm health and activate permanently | PLANNED |
+| 13. Confirm health and activate permanently | EXPERIMENTAL |
 
-Step 12 exists as `metaupd rollback NAME --once`, which is the same operation. It was
-tested across reboots.
+Releases with artifacts for step 11 are refused before anything happens.
 
 ## Applying updates
 
-The design for steps 8 to 13, using what FreeBSD 15 documents for pkgbase:
+The running system is never modified.
 
-```sh
-bectl create meta-26.0.1-20260601120000
-bectl mount meta-26.0.1-20260601120000 /mnt
-pkg -c /mnt upgrade -r META-staged      # repository backed by the staging directory
-bectl umount meta-26.0.1-20260601120000
-bectl activate -t meta-26.0.1-20260601120000
-```
+1. The state directory must be outside the boot environment, or installing is refused.
+2. A clone is created and mounted below the state directory, with devfs.
+3. Artifacts are copied in, and **the copies** are verified against the signed manifest.
+4. `pkg -c` indexes and installs them. It sees one repository, the copies, so nothing else
+   can be fetched. That repository needs no signature of its own.
+5. The clone must contain a kernel, loader, rc and init, report exactly the release's version,
+   and pass `pkg check -s` for the installed packages.
+6. It is unmounted and activated for one boot.
 
-Open points:
+If any step fails, the clone is unmounted and destroyed, and nothing is activated. A clone
+that cannot be unmounted is left alone and reported, because destroying it might follow a
+mount.
 
-- Package scripts run during installation. They come from signed packages but run as root
-  in the new environment; running them in `bectl jail` limits the damage.
-- `pkg -c` chroots into the environment, so its own `pkg` and libraries are used.
-- Only META's staged repository may be enabled, so nothing else is fetched.
+## Confirming a boot
 
-### Validation before activation
+`metaupd_confirm` runs after login services are up. If the system runs on the new environment
+and reports the new version, the environment becomes permanent. If it runs on the old one, the
+failure is recorded. If the new system never gets that far, the next reset returns to the old
+one without any software being involved.
 
-`pkg check -s`, presence of the kernel and modules it needs, `loader.conf` and `fstab`
-syntax, and that `rc` configuration still parses.
+Health is judged by the boot reaching that point and by the version. Richer checks are
+PLANNED.
 
-### Confirming a boot
+Package scripts run as root in the clone while packages are installed. They come from signed
+packages; running them in `bectl jail` would limit the damage and is PLANNED.
 
-A service marks the boot healthy once networking and login services are up. Without it the
-next reboot returns to the old environment.
+## Evidence
+
+`tests/vm/suite.sh m9`, across five reboots: refusal with state inside the boot environment, a
+modified staged package, installation of a release with a kernel, automatic confirmation, an
+update sabotaged so that the kernel panics, automatic return with the failure recorded, notice
+of a withheld release, and rollback with the history intact.
 
 ## What cannot be atomic
 

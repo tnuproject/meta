@@ -1,7 +1,8 @@
 # META Network
 
-Status: RESEARCH REQUIRED. `meta network status` is the only working part; it reads
-FreeBSD's tools and changes nothing.
+Status: EXPERIMENTAL for wired networks; RESEARCH REQUIRED for the rest.
+
+`meta-netd` answers a subset of NetworkManager's D-Bus interface with FreeBSD's state.
 
 ## Goal
 
@@ -49,10 +50,11 @@ built without its daemon.
 | Compatible daemon, `meta-netd` | Native backend; desktops keep working | Large interface; behaviour must match closely |
 | Use networkmgr or wifimgr | Exists today | No desktop integration |
 
-The compatible daemon is preferred. Until it exists, installations should use DHCP from
-the base system, and desktops can add networkmgr.
+The compatible daemon was chosen. It contains no NetworkManager code.
 
-### Subset for a first prototype
+### Subset
+
+Steps 1 to 3 and 6 are implemented for Ethernet; 4 and 5 are PLANNED.
 
 1. Manager: `GetDevices`, `State`, `ActiveConnections`, `Version`
 2. Device and Device.Wired properties
@@ -63,11 +65,29 @@ the base system, and desktops can add networkmgr.
 
 `nmcli device status` exercises steps 1 to 3 and is M4's exit criterion.
 
+### Behaviour
+
+- Every interface is a device. Ethernet devices have one automatic profile derived from the
+  interface; loopback and everything else is shown as unmanaged.
+- State is read every three seconds, so changes made with `ifconfig` appear too.
+- Connecting brings the interface up and runs dhclient; disconnecting releases the address.
+  Neither survives a reboot; `rc.conf` is not changed.
+- Wireless interfaces are shown as generic devices until there is hardware to test with.
+- Link speed is reported as unknown, and connectivity as full when there is a default route.
+  Nothing checks for captive portals.
+
+### Evidence
+
+`tests/vm/suite.sh m4` runs nmcli 1.42.4 from a Debian root against it: status, addresses,
+gateway and name server compared with FreeBSD's, profiles, interfaces appearing and
+disappearing, disconnecting, connecting with DHCP, and refusal of an unprivileged user.
+Desktop network panels have not been tested.
+
 ### Feature feasibility
 
 | Feature | FreeBSD basis | Status |
 |---|---|---|
-| Ethernet, DHCP | ifconfig, dhclient | PLANNED |
+| Ethernet, DHCP | ifconfig, dhclient | EXPERIMENTAL |
 | Wi-Fi client | net80211, wpa_supplicant | RESEARCH REQUIRED |
 | DNS | resolvconf, local_unbound | PLANNED |
 | WireGuard | if_wg | PLANNED |
@@ -78,5 +98,5 @@ the base system, and desktops can add networkmgr.
 
 ### Authorization
 
-Changes go through polkit with NetworkManager's action names, so existing desktop policy
-applies. Wi-Fi secrets are readable by root only.
+Changes go through polkit with NetworkManager's action names, so existing administrator rules
+apply. Reading is open to everyone, as with NetworkManager.

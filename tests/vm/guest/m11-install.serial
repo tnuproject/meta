@@ -1,0 +1,74 @@
+refuse panic:
+refuse Enter full pathname of shell
+refuse mountroot>
+screen 240 Installation mode
+key \x1b[6~
+screen Language +[<\[]
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+screen Detected disks
+screen vtbd0
+key \x1b[C
+screen < vtbd0 >
+key \x1b[6~
+key \x1b[6~
+screen User name
+key bob
+screen \[bob_\]
+key \x1b[B
+key \x1b[B
+key \x1b[B
+key \x1b[B
+key secret
+key \x1b[B
+key secret
+screen \[\*{6}_\]
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+screen erase vtbd0
+key \r
+expect 30 Everything on vtbd0 will be lost
+expect to erase it
+send no
+expect 30 does not match
+expect try again
+send r
+screen 60 Installation mode
+key \x1b[6~
+screen Language +[<\[]
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+screen Detected disks
+screen vtbd0
+key \x1b[C
+screen < vtbd0 >
+key \x1b[6~
+key \x1b[6~
+screen User name
+key bob
+screen \[bob_\]
+key \x1b[B
+key \x1b[B
+key \x1b[B
+key \x1b[B
+key secret
+key \x1b[B
+key secret
+screen \[\*{6}_\]
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+key \x1b[6~
+screen erase vtbd0
+key \r
+expect 30 to erase it
+send vtbd0
+expect 60 ==> installing packages
+expect 900 is installed on vtbd0
+expect Press Enter to restart

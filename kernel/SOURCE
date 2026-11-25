@@ -1,0 +1,4 @@
+# The FreeBSD source META's kernel is built from: 15.1-RELEASE-p7.
+# A commit hash identifies the whole tree, so fetching it verifies it.
+repository=https://github.com/freebsd/freebsd-src.git
+commit=bb03631fe3b7a8bfa8071e8063f554528d4e4618

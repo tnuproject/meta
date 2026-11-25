@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# PROVIDE: metaupdd
+# REQUIRE: dbus NETWORKING
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="metaupdd"
+desc="META update service"
+rcvar="metaupdd_enable"
+pidfile="/var/run/${name}.pid"
+command="/usr/sbin/daemon"
+procname="/usr/sbin/daemon"
+
+load_rc_config $name
+: ${metaupdd_enable:="NO"}
+: ${metaupdd_flags:=""}
+command_args="-f -r -P ${pidfile} -t ${name} -S /usr/local/bin/metaupdd ${metaupdd_flags}"
+metaupdd_flags=""
+run_rc_command "$1"

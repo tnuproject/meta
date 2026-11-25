@@ -7,10 +7,10 @@ drivers, storage and networking; Linux compatibility is an integrated part of th
 system rather than an add-on. META is not a Linux distribution.
 
 > [!IMPORTANT]
-> META is not an installable operating system yet. This repository holds the
-> architecture, tested prototypes of several components, and the infrastructure
-> to develop them. There is no ISO, no package repository and no release. The
-> [status table](#status) says what works today.
+> META is pre-release software. It can be built, installed, updated and rolled
+> back in a virtual machine, and has **never been run on physical hardware**.
+> Nothing is published: no image, no package repository, no release, no signing
+> keys. The [status table](#status) says what works today.
 
 ## Vision
 
@@ -32,24 +32,24 @@ of this table, and CI keeps the two in agreement.
 | Component | Status | Today |
 |---|---|---|
 | meta CLI | IMPLEMENTED | Version, platform, hardware, network and compatibility reports |
-| linux2BSD | EXPERIMENTAL | Identifies Linux programs, resolves libraries and symbol versions, runs supported ones through Linuxulator |
-| metaupd | EXPERIMENTAL | Checks, verifies and downloads releases; selects boot environments; does not install updates |
+| linux2BSD | EXPERIMENTAL | Checks Linux programs and runs them through Linuxulator or an edition's jail |
+| Editions | EXPERIMENTAL | Debian and Arch roots: created from signed archives, run, updated, rolled back, removed |
+| metaupd | EXPERIMENTAL | Verifies, downloads and installs signed releases into boot environments; rolls back |
+| metaupd D-Bus | EXPERIMENTAL | Update service for desktops, authorized by polkit |
+| Desktop updates | EXPERIMENTAL | META Update Manager, tested in XFCE; no Discover or GNOME Software plugin |
 | metaupd-release | EXPERIMENTAL | Generates, signs and verifies release metadata |
+| meta-installer | EXPERIMENTAL | Installs on a whole disk with ZFS; no UFS, encryption or custom partitioning |
+| Installation media | EXPERIMENTAL | Build script for a BIOS and UEFI image that installs without a network |
 | EDS | EXPERIMENTAL | Detects hardware and reports known support; does not install drivers |
-| meta-installer | EXPERIMENTAL | Keyboard-driven interface that saves a plan; does not install |
+| META Network | EXPERIMENTAL | NetworkManager-compatible service for wired networks; no Wi-Fi or VPN |
+| Kernel build | EXPERIMENTAL | FreeBSD GENERIC with a META identity, from a pinned source, as a package |
+| Native packages | EXPERIMENTAL | META packages and a signed repository; none is published |
 | Package policy | EXPERIMENTAL | Isolation and override rules as tested code; not connected to pkg |
-| Kernel build | EXPERIMENTAL | FreeBSD GENERIC with a META identity; built and booted in QEMU |
-| Native packages | EXPERIMENTAL | FreeBSD package of the META tools; no repository |
-| META Network | RESEARCH REQUIRED | NetworkManager-compatible D-Bus service; only status reporting exists |
-| LinuxKPI | RESEARCH REQUIRED | Expanded Linux driver compatibility |
+| Desktops | EXPERIMENTAL | XFCE installed and used in a virtual machine; the others are untested |
+| Containers | EXPERIMENTAL | Compatibility roots run as jails; no general container support |
+| LinuxKPI | RESEARCH REQUIRED | Gap analysis tool and one driver family analyzed; no driver work |
 | GRUB | RESEARCH REQUIRED | FreeBSD's loader is used until GRUB is validated |
-| metaupd D-Bus | PLANNED | Interface definition only; no daemon |
-| Editions | PLANNED | Debian and Arch compatibility roots; metadata packages only |
-| Desktops | PLANNED | Package sets recorded; none tested |
-| Desktop updates | PLANNED | Discover, GNOME Software and META Update Manager integration |
-| Containers | PLANNED | Jail templates for compatibility environments |
 | Core utilities | PLANNED | FreeBSD base utilities; no replacements written |
-| Installation media | PLANNED | No bootable image exists |
 
 What was tested, where and when is recorded in
 [docs/development/testing.md](docs/development/testing.md).
@@ -85,29 +85,32 @@ Start with [ARCHITECTURE.md](ARCHITECTURE.md).
 | Desktop update integration | [docs/updates/desktop-integration.md](docs/updates/desktop-integration.md) |
 | Packaging and editions | [docs/packaging/editions.md](docs/packaging/editions.md) |
 | Installer | [docs/installation/installer.md](docs/installation/installer.md) |
+| Installation media | [docs/installation/media.md](docs/installation/media.md) |
 | Security | [docs/security/threat-model.md](docs/security/threat-model.md) |
 
 ## Components
 
 **linux2BSD** inspects a Linux program, picks a Linux userland for it, checks its
 libraries, symbol versions and kernel requirement, and starts it through FreeBSD's
-Linuxulator. It translates neither machine code nor system calls.
+Linuxulator, in an edition's jail when needed. It translates neither machine code
+nor system calls.
 
-**META Network** is planned as a service with a NetworkManager-compatible D-Bus
-interface on top of FreeBSD's network stack. No NetworkManager port exists, and
-META does not claim one.
+**META Network** is `meta-netd`, a service with a subset of NetworkManager's D-Bus
+interface on top of FreeBSD's network tools. It covers wired networks. It is not a
+port of NetworkManager; none exists.
 
 **EDS** (Extended Driver Support) detects hardware and records, for each driver,
 whether it is native, LinuxKPI, firmware, userspace or unsupported, and whether
 META has tested it.
 
 **metaupd** updates the whole system from signed releases published on
-[GitHub Releases](https://github.com/tnuproject/meta/releases). GitHub is only
-transport: every release must be signed by META keys. No keys have been published,
-so metaupd currently refuses every update.
+[GitHub Releases](https://github.com/tnuproject/meta/releases). It installs into a
+new boot environment, tries it for one boot, and keeps it only if that works. GitHub
+is only transport: every release must be signed by META keys. No keys have been
+published, so metaupd currently refuses every update.
 
-**The installer** is a keyboard-driven terminal interface. This version produces a
-plan and contains no code that writes to disks.
+**The installer** is a keyboard-driven terminal interface that produces a plan. A
+separate program carries it out after the disk's name has been repeated.
 
 ### Editions
 
@@ -121,7 +124,8 @@ pkg remains authoritative for the host in both.
 
 ### Desktops
 
-Planned: KDE Plasma, GNOME, XFCE, Cinnamon, i3, Sway, Hyprland, or no desktop.
+Offered: KDE Plasma, GNOME, XFCE, Cinnamon, i3, Sway, Hyprland, or no desktop. Only
+XFCE has been tested.
 [desktop/desktops.toml](desktop/desktops.toml) records the packages and whether
 they existed in FreeBSD's repository when last checked. On 2026-11-25 the KDE
 Plasma desktop packages did not.
@@ -152,15 +156,16 @@ target/debug/linux2bsd inspect /path/to/program
 target/debug/meta-installer --answers installer/answers.example.toml
 ```
 
-See [building](docs/development/building.md) and
-[testing](docs/development/testing.md), including how to run a FreeBSD virtual
-machine.
+See [building](docs/development/building.md), [testing](docs/development/testing.md) and
+the [virtual machine tests](tests/vm/README.md).
 
 ## Limitations
 
-- Nothing installs META, and metaupd does not apply updates.
-- Validation so far used one QEMU virtual machine. No physical hardware, desktop,
-  Wi-Fi, suspend or GPU acceleration has been tested.
+- Validation so far used QEMU virtual machines. No physical hardware, Wi-Fi, suspend
+  or GPU acceleration has been tested.
+- The installer uses a whole disk with ZFS. No encryption, dual boot or UFS.
+- metaupd updates packages in a boot environment. It does not update the EFI system
+  partition or firmware.
 - Linux support depends on Linuxulator. Programs that need namespaces, cgroups,
   systemd, Linux kernel modules or a newer kernel interface will not work.
 - LinuxKPI does not make arbitrary Linux drivers work on FreeBSD.

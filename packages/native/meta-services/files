@@ -1,0 +1,9 @@
+0555 @meta-netd /usr/local/bin/meta-netd
+0444 networking/dbus/org.freedesktop.NetworkManager.conf /usr/local/share/dbus-1/system.d/org.freedesktop.NetworkManager.conf
+0444 networking/dbus/org.meta.netd.policy /usr/local/share/polkit-1/actions/org.meta.netd.policy
+0555 networking/dbus/meta_netd.in /usr/local/etc/rc.d/meta_netd
+0555 @metaupdd /usr/local/bin/metaupdd
+0444 metaupd/dbus/io.github.tnuproject.MetaUpd1.conf /usr/local/share/dbus-1/system.d/io.github.tnuproject.MetaUpd1.conf
+0444 metaupd/dbus/io.github.tnuproject.metaupd.policy /usr/local/share/polkit-1/actions/io.github.tnuproject.metaupd.policy
+0555 metaupd/dbus/metaupdd.in /usr/local/etc/rc.d/metaupdd
+0444 metaupd/dbus/io.github.tnuproject.MetaUpd1.xml /usr/local/share/dbus-1/interfaces/io.github.tnuproject.MetaUpd1.xml

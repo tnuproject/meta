@@ -1,0 +1,68 @@
+refuse panic:
+refuse Enter full pathname of shell
+refuse mountroot>
+expect 240 login:
+# The graphical login comes up by itself on the other console.
+sleep 25
+monitor screendump /tmp/m12-greeter.png -f png
+send alice
+expect Password:
+send secret
+expect 30 [$]
+send meta info | grep installed; pgrep -q metaupdd && pgrep -q meta-netd && echo SERVICES''-OK; pgrep -q Xorg && echo XORG''-OK
+expect META 26.0-rc1
+expect SERVICES-OK
+expect XORG-OK
+# Log in graphically; the greeter has the only user selected.
+monitor sendkey s
+monitor sendkey e
+monitor sendkey c
+monitor sendkey r
+monitor sendkey e
+monitor sendkey t
+monitor sendkey ret
+sleep 25
+monitor screendump /tmp/m12-desktop.png -f png
+send pgrep -q xfce4-session && echo XFCE''-OK
+expect 30 XFCE-OK
+# Update.
+send sudo -k; sudo -S metaupd channel testing
+expect 30 Password
+send secret
+expect 30 channel set to testing
+send sudo metaupd --source /home/releases check
+expect 30 META 26.0-rc2
+send sudo metaupd --source /home/releases download
+expect 60 META 26.0-rc2 verified
+send sudo metaupd install --yes
+expect 240 is installed in meta-26.0-rc2
+send sudo reboot
+expect 240 login:
+sleep 8
+send alice
+expect Password:
+send secret
+expect 30 [$]
+send cat /etc/meta-release; uname -v; sudo -S metaupd status
+expect VERSION=26.0-rc2
+expect META
+expect 30 Password
+send secret
+expect 30 installed +26.0-rc2
+send bectl list -H; metaupd history
+expect meta-26.0-rc2\S+\s+NR
+expect 30 confirm +ok
+# Roll back.
+send sudo metaupd rollback default --yes
+expect 30 default will be used
+send sudo reboot
+expect 240 login:
+sleep 5
+send alice
+expect Password:
+send secret
+expect 30 [$]
+send cat /etc/meta-release; uname -v; metaupd history | tail -1
+expect VERSION=26.0-rc1
+expect GENERIC
+expect 30 rollback +ok

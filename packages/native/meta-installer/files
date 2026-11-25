@@ -1,0 +1,3 @@
+0555 @meta-installer /usr/local/bin/meta-installer
+0555 @meta-install-run /usr/local/bin/meta-install-run
+0444 installer/answers.example.toml /usr/local/share/examples/meta-installer/answers.toml

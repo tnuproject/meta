@@ -1,0 +1,3 @@
+0555 desktop/update-manager/meta-update-manager /usr/local/bin/meta-update-manager
+0444 desktop/update-manager/meta-update-manager.desktop /usr/local/share/applications/io.github.tnuproject.MetaUpdateManager.desktop
+0444 desktop/update-manager/meta-update-notifier.desktop /usr/local/etc/xdg/autostart/meta-update-notifier.desktop

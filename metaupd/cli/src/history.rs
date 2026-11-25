@@ -20,8 +20,23 @@ const HISTORY_LIMIT: u64 = 64 * 1024 * 1024;
 pub enum Action {
     Channel,
     Download,
+    Install,
+    Confirm,
     RootRotation,
     Rollback,
+}
+
+impl Action {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Action::Channel => "channel",
+            Action::Download => "download",
+            Action::Install => "install",
+            Action::Confirm => "confirm",
+            Action::RootRotation => "root-rotation",
+            Action::Rollback => "rollback",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

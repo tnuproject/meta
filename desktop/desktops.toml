@@ -2,7 +2,7 @@
 #
 # `availability` records whether every listed package existed in the FreeBSD
 # package repository on the given date. It says nothing about whether the
-# desktop works; no desktop has been tested on META.
+# desktop works. Only XFCE has been tested, by tests/vm/suite.sh m12.
 schema = 1
 
 [[desktop]]

@@ -27,6 +27,34 @@ pub struct Edition {
     /// Host paths exposed inside the root, and whether they are writable there.
     #[serde(default)]
     pub shared: Vec<Shared>,
+    pub bootstrap: Bootstrap,
+}
+
+/// How the userland is obtained. Every source is authenticated.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, tag = "kind", rename_all = "kebab-case")]
+pub enum Bootstrap {
+    /// debootstrap with a pinned archive keyring.
+    Debootstrap {
+        suite: String,
+        mirror: String,
+        keys: Vec<PinnedKey>,
+    },
+    /// A root archive with a detached signature by a pinned key.
+    Archive {
+        url: String,
+        signature: String,
+        signer: String,
+        fingerprint: String,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PinnedKey {
+    pub url: String,
+    pub fingerprint: String,
+    pub sha256: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -223,6 +251,12 @@ mod tests {
             package_manager: "apt".into(),
             package_format: "deb".into(),
             shared: Vec::new(),
+            bootstrap: Bootstrap::Archive {
+                url: "https://example.org/a".into(),
+                signature: "https://example.org/a.sig".into(),
+                signer: "a@example.org".into(),
+                fingerprint: "0".repeat(40),
+            },
         }
     }
 

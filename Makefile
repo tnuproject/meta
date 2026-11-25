@@ -5,8 +5,11 @@ PYTHON ?= python3
 SHELLCHECK ?= shellcheck
 BINDIR ?= target/debug
 
-SCRIPTS = scripts/build-kernel.sh tests/ota-e2e.sh packages/native/build-pkg.sh \
-	packages/debian/build-deb.sh packages/arch/build-arch.sh
+SCRIPTS = scripts/build-kernel.sh scripts/fetch-kernel-source.sh tests/ota-e2e.sh \
+	packages/native/build-packages.sh packages/native/build-repository.sh \
+	packages/native/build-kernel-stage.sh packages/debian/build-deb.sh \
+	packages/arch/build-arch.sh installer-iso/build-iso.sh installer-iso/rc.local \
+	tests/vm/vm.sh tests/vm/suite.sh tests/vm/console.sh
 
 all: build
 

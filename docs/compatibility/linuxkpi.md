@@ -32,6 +32,12 @@ From FreeBSD status reports, checked 2026-11-25. META has tested none of this.
 | Power management | Suspend paths of DRM and Wi-Fi drivers | RESEARCH REQUIRED |
 | Audio | DSP microphones (SOF, ACP) have no FreeBSD driver | RESEARCH REQUIRED |
 
+## First analysis
+
+[linuxkpi/ath11k.md](../../linuxkpi/ath11k.md) finds that Qualcomm's Wi-Fi 6 driver lacks almost
+nothing to compile, and that MHI and QMI are the real work. The tool works on any driver in
+FreeBSD's tree.
+
 ## Method
 
 1. Choose a driver family from hardware reports.

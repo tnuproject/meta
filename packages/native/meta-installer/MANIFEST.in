@@ -1,0 +1,11 @@
+name: meta-installer
+origin: meta/meta-installer
+version: "@VERSION@"
+comment: "META installer"
+desc: "Terminal interface that plans a META installation, and the program that carries a plan out."
+maintainer: "packages@meta.invalid"
+www: "https://github.com/tnuproject/meta"
+categories: [sysutils]
+licenselogic: single
+licenses: [BSD2CLAUSE]
+prefix: /usr/local

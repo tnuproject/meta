@@ -1,0 +1,42 @@
+#!/bin/sh
+# Starts the installer on META's installation media.
+
+[ -f /META-LIVE ] || exit 0
+
+TERM=xterm
+case $(kenv -q console 2>/dev/null) in
+comconsole*) TERM=vt100 ;;
+esac
+export TERM LC_ALL=C.UTF-8
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+# A serial line does not know its size.
+case $(stty size 2>/dev/null) in
+'' | '0 0') stty rows 24 columns 80 ;;
+esac
+ldconfig -m /usr/local/lib 2>/dev/null
+
+extra=
+case $(kenv -q console 2>/dev/null) in
+comconsole*) extra=--serial-console ;;
+esac
+
+while :; do
+	# shellcheck disable=SC2086
+	if meta-installer --install --output /tmp/meta-install-plan.json -- \
+		--trust /usr/local/etc/meta/trust $extra; then
+		printf '\nRemove the installation medium. Press Enter to restart. '
+		read -r _
+		reboot
+		exit 0
+	fi
+	printf '\nThe installation did not finish.\n'
+	printf 'Enter r to try again, s for a shell, or p to power off: '
+	read -r answer
+	case $answer in
+	s) /bin/sh ;;
+	p)
+		shutdown -p now
+		exit 0
+		;;
+	esac
+done

@@ -1,0 +1,11 @@
+name: meta-kernel
+origin: meta/meta-kernel
+version: "@VERSION@"
+comment: "META kernel"
+desc: "FreeBSD kernel with the META identity, installed beside FreeBSD's own as /boot/kernel.META."
+maintainer: "packages@meta.invalid"
+www: "https://github.com/tnuproject/meta"
+categories: [sysutils]
+licenselogic: single
+licenses: [BSD2CLAUSE]
+prefix: /

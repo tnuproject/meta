@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
   "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
-<!-- Status: PLANNED. No daemon implements this interface yet.
-     See docs/updates/dbus-api.md. -->
+<!-- Implemented by metaupdd. See docs/updates/dbus-api.md. -->
 <node name="/io/github/tnuproject/MetaUpd1">
   <interface name="io.github.tnuproject.MetaUpd1">
     <property name="Version" type="s" access="read"/>
@@ -54,7 +53,6 @@
       <property name="Kind" type="s" access="read"/>
       <!-- 0 to 100, or -1 when unknown -->
       <property name="Progress" type="i" access="read"/>
-      <method name="Cancel"/>
       <signal name="Finished">
         <arg name="success" type="b"/>
         <arg name="message" type="s"/>

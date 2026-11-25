@@ -1,12 +1,14 @@
 //! Host platform identification.
 
+use std::path::Path;
+
 use serde::Serialize;
 
 use crate::command::CommandRunner;
 
 pub const SYSCTL: &str = "/sbin/sysctl";
 const FREEBSD_VERSION: &str = "/bin/freebsd-version";
-const META_RELEASE: &str = "/etc/meta-release";
+const META_RELEASE: &str = "etc/meta-release";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -56,9 +58,7 @@ impl Platform {
         };
         if platform.is_freebsd() {
             platform.fill_freebsd(runner);
-            platform.meta_release = std::fs::read_to_string(META_RELEASE)
-                .ok()
-                .and_then(|text| parse_meta_release(&text));
+            platform.meta_release = read_meta_release(Path::new("/"));
         }
         platform
     }
@@ -98,6 +98,12 @@ pub fn sysctl(runner: &dyn CommandRunner, name: &str) -> Option<String> {
     let value = runner.stdout(SYSCTL, &["-n", name]).ok()?;
     let value = value.trim();
     (!value.is_empty()).then(|| value.to_owned())
+}
+
+/// Reads the META release marker of the system installed at `root`.
+pub fn read_meta_release(root: &Path) -> Option<MetaRelease> {
+    let text = std::fs::read_to_string(root.join(META_RELEASE)).ok()?;
+    parse_meta_release(&text)
 }
 
 fn parse_meta_release(text: &str) -> Option<MetaRelease> {

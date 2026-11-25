@@ -60,12 +60,14 @@ jobs:
           run: |
             set -e
             cargo build --workspace --release --locked
-            sh packages/native/build-pkg.sh -b target/release -o dist
-            pkg info -F dist/meta-tools-*.pkg
-            pkg add dist/meta-tools-*.pkg
+            sh packages/native/build-packages.sh -b target/release -o dist -V 26.0-alpha1
+            for package in dist/*.pkg; do pkg info -F "$package"; done
+            pkg add dist/meta-tools-*.pkg dist/meta-release-*.pkg
             meta version
-            pkg check -s meta-tools
-            pkg delete -y meta-tools
+            pkg check -s meta-tools meta-release
+            pkg key --create -t eddsa /root/repository.key >/dev/null
+            sh packages/native/build-repository.sh -p dist -o repository -k /root/repository.key
+            pkg delete -y meta-tools meta-release
 
   ota:
     name: OTA artifact validation

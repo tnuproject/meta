@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Makes a META update permanent once the system has booted on it. Without this,
+# the boot after an update returns to the previous boot environment.
+
+# PROVIDE: metaupd_confirm
+# REQUIRE: LOGIN FILESYSTEMS
+# KEYWORD: nojail
+
+. /etc/rc.subr
+
+name="metaupd_confirm"
+desc="Confirm a META update"
+rcvar="metaupd_confirm_enable"
+start_cmd="metaupd_confirm_start"
+stop_cmd=":"
+
+metaupd_confirm_start()
+{
+	[ -f /var/db/metaupd/state.json ] || return 0
+	/usr/local/bin/metaupd confirm
+}
+
+load_rc_config $name
+: ${metaupd_confirm_enable:="YES"}
+run_rc_command "$1"

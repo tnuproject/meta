@@ -1,0 +1,14 @@
+refuse panic:
+refuse Enter full pathname of shell
+refuse mountroot>
+expect 180 login:
+send bob
+expect Password:
+send secret
+expect 30 [$]
+send meta info | head -8
+expect installed +META 26.0
+send sudo -k; sudo -S meta doctor; echo R=$?
+expect 30 Password
+send secret
+expect 30 R=0
