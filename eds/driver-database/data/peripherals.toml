@@ -1,0 +1,60 @@
+schema = 1
+
+[[entry]]
+id = "camera-usb-uvc"
+name = "USB video class camera"
+category = "camera"
+support = "userspace"
+validation = "documented"
+modules = ["cuse"]
+packages = ["webcamd"]
+source = "https://docs.freebsd.org/en/books/handbook/multimedia/"
+notes = "Runs Linux camera drivers in a userspace daemon. Cameras that need an image signal processor driver (MIPI sensors) are not covered."
+
+[[entry.matches]]
+bus = "usb"
+kind = "camera"
+
+[[entry]]
+id = "fingerprint-libfprint"
+name = "USB fingerprint reader"
+category = "biometrics"
+support = "userspace"
+validation = "documented"
+packages = ["fprintd", "libfprint"]
+source = "https://www.freshports.org/security/libfprint/"
+notes = "Only readers libfprint supports. Device identifiers are not listed here until tested."
+
+[[entry]]
+id = "printer-usb"
+name = "USB printer"
+category = "peripheral"
+support = "userspace"
+validation = "documented"
+packages = ["cups"]
+source = "https://docs.freebsd.org/en/books/handbook/printing/"
+
+[[entry.matches]]
+bus = "usb"
+kind = "printer"
+
+[[entry]]
+id = "scanner-sane"
+name = "Document scanner"
+category = "peripheral"
+support = "userspace"
+validation = "documented"
+packages = ["sane-backends"]
+source = "https://www.freshports.org/graphics/sane-backends/"
+notes = "Only scanners SANE supports. Scanners have no USB class of their own, so they are not detected."
+
+[[entry]]
+id = "touchpad-i2c-hid"
+name = "I2C HID touchpad or touchscreen"
+category = "input"
+support = "native"
+validation = "documented"
+driver = "iichid"
+modules = ["iichid"]
+source = "https://man.freebsd.org/cgi/man.cgi?query=iichid&sektion=4"
+notes = "Attached through ACPI and I2C, which hardware detection does not enumerate yet."

@@ -1,0 +1,79 @@
+name: Packages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: packages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deb:
+    name: DEB prototype
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: sh packages/debian/build-deb.sh dist
+      - name: Inspect
+        run: |
+          dpkg-deb --info dist/*.deb
+          dpkg-deb --contents dist/*.deb
+
+  arch:
+    name: Arch prototype
+    runs-on: ubuntu-latest
+    container: archlinux@sha256:949ecb1661609ab7e8f6854ba03efd62792e7a796313738e94b040c095c20d91 # base-devel, 2026-11-23
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build as an unprivileged user
+        run: |
+          useradd --create-home builder
+          install -d -o builder dist
+          runuser -u builder -- sh packages/arch/build-arch.sh dist
+      - name: Inspect
+        run: |
+          pacman --query --info --file dist/*.pkg.tar.*
+          pacman --query --list --file dist/*.pkg.tar.*
+
+  native:
+    name: FreeBSD package
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: vmactions/freebsd-vm@811efaaac0668df8bfb8308c3ec997b5ab50037b # v1.6.0
+        with:
+          release: "15.1"
+          usesh: true
+          prepare: pkg install -y rust
+          run: |
+            set -e
+            cargo build --workspace --release --locked
+            sh packages/native/build-pkg.sh -b target/release -o dist
+            pkg info -F dist/meta-tools-*.pkg
+            pkg add dist/meta-tools-*.pkg
+            meta version
+            pkg check -s meta-tools
+            pkg delete -y meta-tools
+
+  ota:
+    name: OTA artifact validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install
+      - run: cargo build --workspace --locked
+      - run: sh tests/ota-e2e.sh target/debug

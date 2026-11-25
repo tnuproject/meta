@@ -1,0 +1,69 @@
+schema = 1
+
+[[entry]]
+id = "storage-virtio"
+name = "VirtIO block device"
+category = "storage"
+support = "native"
+validation = "validated"
+driver = "virtio_pci"
+source = "https://man.freebsd.org/cgi/man.cgi?query=virtio_blk&sektion=4"
+
+[[entry.tested_on]]
+release = "15.1-RELEASE-p7"
+machine = "QEMU i440FX"
+date = "2026-11-25"
+result = "vtbd0 attached; used as the ZFS root pool"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x1af4
+devices = [0x1001, 0x1042]
+
+[[entry]]
+id = "storage-ahci"
+name = "AHCI SATA controller"
+category = "storage"
+support = "native"
+validation = "documented"
+driver = "ahci"
+source = "https://man.freebsd.org/cgi/man.cgi?query=ahci&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+kind = "storage"
+
+[[entry]]
+id = "storage-nvme"
+name = "NVMe storage controller"
+category = "storage"
+support = "native"
+validation = "documented"
+driver = "nvme"
+source = "https://man.freebsd.org/cgi/man.cgi?query=nvme&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+kind = "storage"
+
+[[entry]]
+id = "usb-xhci"
+name = "USB host controller"
+category = "platform"
+support = "native"
+validation = "documented"
+driver = "xhci"
+source = "https://man.freebsd.org/cgi/man.cgi?query=xhci&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+kind = "usb-controller"
+
+[[entry]]
+id = "backlight"
+name = "Display brightness"
+category = "platform"
+support = "native"
+validation = "documented"
+source = "https://man.freebsd.org/cgi/man.cgi?query=backlight&sektion=8"
+notes = "Needs a graphics driver that registers a backlight device."

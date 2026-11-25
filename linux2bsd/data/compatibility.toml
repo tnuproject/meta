@@ -1,0 +1,24 @@
+# linux2BSD compatibility database.
+#
+# Every entry needs evidence: either an upstream document or a dated test by
+# the META project. See docs/compatibility/linux2bsd.md before adding one.
+schema = 1
+
+[[entry]]
+id = "systemd"
+severity = "blocking"
+summary = "systemd does not work under Linux binary compatibility; use FreeBSD rc(8) services"
+evidence = { kind = "documentation", url = "https://docs.freebsd.org/en/books/handbook/linuxemu/" }
+
+[entry.matches]
+programs = ["systemd", "systemctl", "systemd-nspawn", "journalctl"]
+libraries = ["libsystemd-shared"]
+
+[[entry]]
+id = "appimage-fuse"
+severity = "workaround"
+summary = "AppImages mount themselves with FUSE; extract with --appimage-extract when that fails"
+evidence = { kind = "documentation", url = "https://docs.appimage.org/user-guide/troubleshooting/fuse.html" }
+
+[entry.matches]
+appimage = true

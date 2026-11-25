@@ -1,0 +1,186 @@
+# Prepares a release. Never publishes one: the last job creates a draft, and only
+# when asked to. Publishing is a manual decision.
+#
+# See docs/updates/release-process.md for the protections this relies on.
+name: Release preparation
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_draft:
+        description: Create a draft GitHub release after signing
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      package: ${{ steps.version.outputs.package }}
+    steps:
+      - name: Require the main branch
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "::error::releases are prepared from main only"
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Require reviewed release inputs
+        run: |
+          for file in metaupd/release/release.toml metaupd/release/root.json metaupd/release/root.sig.json; do
+            if [ ! -f "$file" ]; then
+              echo "::error::$file does not exist; no release is being prepared"
+              exit 1
+            fi
+          done
+      - name: Read the version
+        id: version
+        run: |
+          python3 - >> "$GITHUB_OUTPUT" <<'EOF'
+          import re, sys, tomllib
+          with open("metaupd/release/release.toml", "rb") as file:
+              config = tomllib.load(file)
+          version = config["version"]
+          packages = [a["name"] for a in config["artifact"] if a["name"].endswith(".pkg")]
+          if not re.fullmatch(r"\d+\.\d+(\.\d+)?(-(alpha|beta|rc)\d+)?", version):
+              sys.exit(f"invalid version {version!r}")
+          if len(packages) != 1:
+              sys.exit("expected exactly one package artifact")
+          match = re.fullmatch(r"meta-tools-([0-9a-z.]+)\.pkg", packages[0])
+          if not match:
+              sys.exit(f"unexpected package name {packages[0]!r}")
+          print(f"version={version}")
+          print(f"package={match[1]}")
+          EOF
+
+  build:
+    name: Build on FreeBSD
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PACKAGE_VERSION: ${{ needs.validate.outputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: vmactions/freebsd-vm@811efaaac0668df8bfb8308c3ec997b5ab50037b # v1.6.0
+        with:
+          release: "15.1"
+          usesh: true
+          envs: PACKAGE_VERSION
+          prepare: pkg install -y rust
+          run: |
+            set -e
+            cargo test --workspace --locked
+            cargo build --workspace --release --locked
+            sh packages/native/build-pkg.sh -b target/release -o dist -v "$PACKAGE_VERSION"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages
+          path: dist/*.pkg
+          if-no-files-found: error
+
+  assemble:
+    name: Assemble the unsigned release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packages
+          path: release
+      - run: rustup toolchain install
+      - run: cargo build --package metaupd-release --release --locked
+      - name: Generate the manifest
+        run: |
+          cp CHANGELOG.md release/
+          target/release/metaupd-release manifest \
+            --config metaupd/release/release.toml --artifacts release
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unsigned-release
+          path: release
+          if-no-files-found: error
+
+  sign:
+    name: Sign
+    needs: assemble
+    runs-on: ubuntu-latest
+    # Must be configured with required reviewers and hold META_RELEASE_KEY.
+    environment: release-signing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: unsigned-release
+          path: release
+      - run: rustup toolchain install
+      # Built before the key is available to any step.
+      - run: cargo build --package metaupd-release --release --locked
+      - name: Sign the manifest
+        env:
+          META_RELEASE_KEY: ${{ secrets.META_RELEASE_KEY }}
+        run: |
+          if [ -z "$META_RELEASE_KEY" ]; then
+            echo "::error::META_RELEASE_KEY is not configured in the release-signing environment"
+            exit 1
+          fi
+          target/release/metaupd-release sign --role release \
+            --file release/meta-manifest.json \
+            --signatures release/meta-manifest.sig.json \
+            --key-env META_RELEASE_KEY
+      - name: Verify as a client would
+        run: |
+          target/release/metaupd-release verify \
+            --root metaupd/release/root.json \
+            --root-signatures metaupd/release/root.sig.json \
+            --dir release
+          target/release/metaupd-release checksums --dir release
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: signed-release
+          path: release
+          if-no-files-found: error
+
+  draft:
+    name: Create a draft release
+    if: ${{ inputs.create_draft }}
+    needs: [validate, sign]
+    runs-on: ubuntu-latest
+    # Must be configured with required reviewers.
+    environment: release-draft
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: signed-release
+          path: release
+      - name: Create the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          gh release create "v$VERSION" --draft --target "$GITHUB_SHA" \
+            --title "META $VERSION" --notes-file CHANGELOG.md release/*
+          echo "Draft created. Review and publish it by hand."

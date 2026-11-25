@@ -1,0 +1,19 @@
+# META Arch Edition. Status: PLANNED. See docs/packaging/editions.md.
+id = "arch"
+name = "META Arch Edition"
+ecosystem = "arch"
+root = "/compat/meta/arch"
+package_manager = "pacman"
+package_format = "pkg.tar.zst"
+
+[[shared]]
+host = "/home"
+inside = "/home"
+writable = true
+reason = "user data"
+
+[[shared]]
+host = "/tmp"
+inside = "/tmp"
+writable = true
+reason = "sockets and temporary files shared with native programs"

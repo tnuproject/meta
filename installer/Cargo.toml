@@ -1,0 +1,27 @@
+[package]
+name = "meta-installer"
+description = "META installer (plan-only prototype)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+clap.workspace = true
+meta-common.workspace = true
+meta-eds-db.workspace = true
+meta-eds-detect.workspace = true
+ratatui.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

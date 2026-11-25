@@ -1,0 +1,58 @@
+# Desktop environments offered by the installer.
+#
+# `availability` records whether every listed package existed in the FreeBSD
+# package repository on the given date. It says nothing about whether the
+# desktop works; no desktop has been tested on META.
+schema = 1
+
+[[desktop]]
+id = "kde"
+name = "KDE Plasma"
+display = "wayland-or-x11"
+packages = ["plasma6-plasma", "sddm"]
+availability = { date = "2026-11-25", repository = "FreeBSD-ports 15 amd64 quarterly", available = false }
+notes = "plasma6-plasma, plasma6-plasma-desktop and plasma6-plasma-workspace were missing from the repository."
+
+[[desktop]]
+id = "gnome"
+name = "GNOME"
+display = "x11"
+packages = ["gnome", "gdm"]
+availability = { date = "2026-11-25", repository = "FreeBSD-ports 15 amd64 quarterly", available = true }
+
+[[desktop]]
+id = "xfce"
+name = "XFCE"
+display = "x11"
+packages = ["xorg", "xfce", "lightdm", "lightdm-gtk-greeter"]
+availability = { date = "2026-11-25", repository = "FreeBSD-ports 15 amd64 quarterly", available = true }
+
+[[desktop]]
+id = "cinnamon"
+name = "Cinnamon"
+display = "x11"
+packages = ["xorg", "cinnamon", "lightdm", "lightdm-gtk-greeter"]
+availability = { date = "2026-11-25", repository = "FreeBSD-ports 15 amd64 quarterly", available = true }
+
+[[desktop]]
+id = "i3"
+name = "i3"
+display = "x11"
+packages = ["xorg", "i3", "i3status", "dmenu", "lightdm", "lightdm-gtk-greeter"]
+availability = { date = "2026-11-25", repository = "FreeBSD-ports 15 amd64 quarterly", available = true }
+
+[[desktop]]
+id = "sway"
+name = "Sway"
+display = "wayland"
+packages = ["sway", "seatd", "foot", "xdg-desktop-portal-wlr"]
+availability = { date = "2026-11-25", repository = "FreeBSD-ports 15 amd64 quarterly", available = true }
+notes = "Needs a DRM/KMS graphics driver. Started from a console login."
+
+[[desktop]]
+id = "hyprland"
+name = "Hyprland"
+display = "wayland"
+packages = ["hyprland", "seatd", "foot", "xdg-desktop-portal-hyprland"]
+availability = { date = "2026-11-25", repository = "FreeBSD-ports 15 amd64 quarterly", available = true }
+notes = "Needs a DRM/KMS graphics driver. Started from a console login."

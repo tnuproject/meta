@@ -1,0 +1,73 @@
+schema = 1
+
+[[entry]]
+id = "gpu-amd"
+name = "AMD Radeon graphics"
+category = "gpu"
+support = "linuxkpi"
+validation = "documented"
+driver = "amdgpu"
+modules = ["amdgpu"]
+packages = ["drm-kmod", "gpu-firmware-kmod"]
+source = "https://docs.freebsd.org/en/books/handbook/x11/"
+notes = "Older Radeon generations use radeonkms instead. Supported GPUs depend on the drm-kmod version."
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x1002
+kind = "graphics"
+
+[[entry]]
+id = "gpu-intel"
+name = "Intel graphics"
+category = "gpu"
+support = "linuxkpi"
+validation = "documented"
+driver = "i915"
+modules = ["i915kms"]
+packages = ["drm-kmod", "gpu-firmware-kmod"]
+source = "https://docs.freebsd.org/en/books/handbook/x11/"
+notes = "Supported generations depend on the drm-kmod version."
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x8086
+kind = "graphics"
+
+[[entry]]
+id = "gpu-nvidia"
+name = "NVIDIA graphics (proprietary driver)"
+category = "gpu"
+support = "native"
+validation = "documented"
+driver = "nvidia"
+modules = ["nvidia-modeset"]
+packages = ["nvidia-driver", "nvidia-kmod"]
+source = "https://docs.freebsd.org/en/books/handbook/x11/"
+notes = "Vendor binary driver under NVIDIA's licence. Older GPUs need a legacy branch."
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x10de
+kind = "graphics"
+
+[[entry]]
+id = "gpu-qemu-vga"
+name = "QEMU standard VGA"
+category = "gpu"
+support = "native"
+validation = "validated"
+driver = "vgapci"
+source = "https://man.freebsd.org/cgi/man.cgi?query=vt&sektion=4"
+notes = "Console framebuffer only; no graphics acceleration."
+
+[[entry.tested_on]]
+release = "15.1-RELEASE-p7"
+machine = "QEMU i440FX"
+date = "2026-11-25"
+result = "device detected and attached to vgapci; console only"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x1234
+devices = [0x1111]

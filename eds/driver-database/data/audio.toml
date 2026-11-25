@@ -1,0 +1,29 @@
+schema = 1
+
+[[entry]]
+id = "audio-hda"
+name = "High Definition Audio"
+category = "audio"
+support = "native"
+validation = "documented"
+driver = "hdac"
+source = "https://man.freebsd.org/cgi/man.cgi?query=snd_hda&sektion=4"
+notes = "Microphones behind a DSP (Intel SOF, AMD ACP) are not HD Audio devices and are not covered."
+
+[[entry.matches]]
+bus = "pci"
+kind = "audio"
+
+[[entry]]
+id = "audio-usb"
+name = "USB audio device"
+category = "audio"
+support = "native"
+validation = "documented"
+driver = "uaudio"
+modules = ["snd_uaudio"]
+source = "https://man.freebsd.org/cgi/man.cgi?query=snd_uaudio&sektion=4"
+
+[[entry.matches]]
+bus = "usb"
+kind = "audio"

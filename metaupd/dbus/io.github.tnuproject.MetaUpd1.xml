@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<!-- Status: PLANNED. No daemon implements this interface yet.
+     See docs/updates/dbus-api.md. -->
+<node name="/io/github/tnuproject/MetaUpd1">
+  <interface name="io.github.tnuproject.MetaUpd1">
+    <property name="Version" type="s" access="read"/>
+    <property name="InstalledVersion" type="s" access="read"/>
+    <property name="Channel" type="s" access="read"/>
+    <!-- Seconds since the epoch; 0 when never checked. -->
+    <property name="LastCheck" type="t" access="read"/>
+    <!-- Idle, Checking, Downloading, Preparing, RebootRequired, Failed -->
+    <property name="State" type="s" access="read"/>
+
+    <!-- Long operations return a job object immediately. -->
+    <method name="Check">
+      <arg name="job" type="o" direction="out"/>
+    </method>
+    <method name="Download">
+      <arg name="version" type="s" direction="in"/>
+      <arg name="job" type="o" direction="out"/>
+    </method>
+    <method name="Install">
+      <arg name="version" type="s" direction="in"/>
+      <arg name="job" type="o" direction="out"/>
+    </method>
+    <method name="SetChannel">
+      <arg name="channel" type="s" direction="in"/>
+    </method>
+    <!-- Keys: version, codename, channel, size, reboot, incompatibilities -->
+    <method name="GetAvailable">
+      <arg name="release" type="a{sv}" direction="out"/>
+    </method>
+    <!-- Entries: time, action, success, detail -->
+    <method name="GetHistory">
+      <arg name="records" type="a(tsbs)" direction="out"/>
+    </method>
+    <!-- Entries: name, active now, active on reboot, creation time -->
+    <method name="ListBootEnvironments">
+      <arg name="environments" type="a(sbbs)" direction="out"/>
+    </method>
+    <method name="Rollback">
+      <arg name="name" type="s" direction="in"/>
+      <arg name="once" type="b" direction="in"/>
+    </method>
+
+    <signal name="AvailableChanged"/>
+    <signal name="RebootRequired"/>
+  </interface>
+
+  <node name="jobs">
+    <interface name="io.github.tnuproject.MetaUpd1.Job">
+      <property name="Kind" type="s" access="read"/>
+      <!-- 0 to 100, or -1 when unknown -->
+      <property name="Progress" type="i" access="read"/>
+      <method name="Cancel"/>
+      <signal name="Finished">
+        <arg name="success" type="b"/>
+        <arg name="message" type="s"/>
+      </signal>
+    </interface>
+  </node>
+</node>

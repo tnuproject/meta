@@ -1,0 +1,18 @@
+name: Proposal
+description: Suggest a change or a design
+labels: [proposal]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Include existing FreeBSD or upstream work that could be reused.
+    validations:
+      required: true

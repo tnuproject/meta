@@ -1,0 +1,77 @@
+[workspace]
+resolver = "3"
+members = [
+    "cli",
+    "common",
+    "eds/cli",
+    "eds/driver-database",
+    "eds/hardware-detection",
+    "installer",
+    "linux2bsd",
+    "metaupd/cli",
+    "metaupd/github-releases",
+    "metaupd/metadata",
+    "metaupd/release-tool",
+    "metaupd/rollback",
+    "metaupd/tests",
+    "metaupd/verification",
+    "networking",
+    "packages/policy",
+]
+
+[workspace.package]
+version = "26.0.0-dev.0"
+edition = "2024"
+rust-version = "1.89"
+license = "BSD-2-Clause"
+repository = "https://github.com/tnuproject/meta"
+publish = false
+
+[workspace.dependencies]
+# Internal crates
+linux2bsd = { path = "linux2bsd" }
+meta-common = { path = "common" }
+meta-eds-db = { path = "eds/driver-database" }
+meta-eds-detect = { path = "eds/hardware-detection" }
+meta-net = { path = "networking" }
+meta-pkg-policy = { path = "packages/policy" }
+metaupd = { path = "metaupd/cli" }
+metaupd-github = { path = "metaupd/github-releases" }
+metaupd-metadata = { path = "metaupd/metadata" }
+metaupd-rollback = { path = "metaupd/rollback" }
+metaupd-verify = { path = "metaupd/verification" }
+
+# External crates. All are pure Rust so that FreeBSD cross-checks need no C
+# cross-compiler.
+base64 = "0.22"
+clap = { version = "4.5", features = ["derive"] }
+ed25519-dalek = { version = "2", default-features = false, features = ["std", "zeroize"] }
+getrandom = "0.3"
+goblin = { version = "0.10", default-features = false, features = ["std", "elf32", "elf64", "endian_fd"] }
+hex = "0.4"
+ratatui = { version = "0.30", default-features = false, features = ["crossterm"] }
+rustix = { version = "1", features = ["process"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+thiserror = "2"
+time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
+toml = "0.9"
+zeroize = "1"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"
+unwrap_used = "warn"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

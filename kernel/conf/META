@@ -1,0 +1,7 @@
+# META 26.0 kernel configuration.
+#
+# Deliberately GENERIC with a different identity. Options are added only when a
+# META feature needs one and the change is documented in kernel/README.md.
+
+include		GENERIC
+ident		META

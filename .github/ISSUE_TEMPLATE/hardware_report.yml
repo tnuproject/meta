@@ -1,0 +1,32 @@
+name: Hardware report
+description: Results from real hardware for the EDS database
+labels: [hardware]
+body:
+  - type: input
+    id: machine
+    attributes:
+      label: Machine model
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: FreeBSD release
+      description: Output of `freebsd-version -ku`.
+    validations:
+      required: true
+  - type: textarea
+    id: scan
+    attributes:
+      label: Detected hardware
+      description: Output of `meta-eds scan --json`. It contains no serial numbers; check before posting.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: What worked and what did not
+      description: State what you tried for each device. "Attached" and "works" are different.
+    validations:
+      required: true

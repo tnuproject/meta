@@ -1,0 +1,28 @@
+# Release description, read by `metaupd-release manifest`.
+#
+# To prepare a release, copy this to metaupd/release/release.toml, adjust it and
+# have it reviewed. There is no release.toml in the repository until a release
+# is being prepared, so the release workflow cannot run by accident.
+version = "26.0-alpha1"
+codename = "uglydemon"
+channel = "unstable"
+# Must be higher than every earlier sequence on this channel.
+sequence = 1
+valid_days = 90
+changelog = "CHANGELOG.md"
+
+[compatibility]
+arch = ["amd64"]
+min_meta_version = "26.0-alpha0"
+min_metaupd_version = "26.0-alpha0"
+osreldate = { min = 1501000, max = 1501999 }
+
+[[artifact]]
+name = "meta-tools-26.0.a1.pkg"
+category = "meta-system"
+apply = "pkg-in-boot-environment"
+
+[[artifact]]
+name = "CHANGELOG.md"
+category = "documentation"
+apply = "none"

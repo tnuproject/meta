@@ -1,0 +1,11 @@
+Package: meta-compat-environment
+Version: @VERSION@
+Architecture: all
+Section: admin
+Priority: optional
+Maintainer: The META Project <packages@meta.invalid>
+Homepage: https://github.com/tnuproject/meta
+Description: identifies a META compatibility root
+ Marks this Debian userland as a META compatibility root running on a FreeBSD
+ kernel, and prevents APT from installing kernels, bootloaders and init systems,
+ which have no function there.

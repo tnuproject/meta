@@ -1,0 +1,26 @@
+/target/
+/dist/
+/build/
+*.partial
+*.deb
+*.pkg
+*.pkg.tar.*
+*.iso
+*.img
+*.qcow2
+
+# Signing material must never enter the repository.
+*.key
+*.sec
+*.pem
+*.p12
+*signing-key*
+
+# Local tool state
+/.claude/worktrees/
+/.claude/settings.local.json
+__pycache__/
+.idea/
+.vscode/
+*.swp
+.DS_Store

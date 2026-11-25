@@ -1,0 +1,6 @@
+# FreeBSD's `lang/rust` package does not use rustup and ignores this file; the
+# minimum supported version is `rust-version` in Cargo.toml.
+[toolchain]
+channel = "stable"
+profile = "minimal"
+components = ["clippy", "rustfmt"]

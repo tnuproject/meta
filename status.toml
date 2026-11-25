@@ -1,0 +1,118 @@
+# Status of every META component. This file is the source of truth: `meta info`
+# embeds it and scripts/check-docs.py requires README.md to agree with it.
+#
+# Labels: IMPLEMENTED, EXPERIMENTAL, IN DEVELOPMENT, PLANNED, RESEARCH REQUIRED
+
+[[component]]
+id = "cli"
+name = "meta CLI"
+status = "IMPLEMENTED"
+summary = "Version, platform, hardware, network and compatibility reports"
+
+[[component]]
+id = "linux2bsd"
+name = "linux2BSD"
+status = "EXPERIMENTAL"
+summary = "Identifies Linux programs, resolves libraries and symbol versions, runs supported ones through Linuxulator"
+
+[[component]]
+id = "metaupd"
+name = "metaupd"
+status = "EXPERIMENTAL"
+summary = "Checks, verifies and downloads releases; selects boot environments; does not install updates"
+
+[[component]]
+id = "release-tool"
+name = "metaupd-release"
+status = "EXPERIMENTAL"
+summary = "Generates, signs and verifies release metadata"
+
+[[component]]
+id = "eds"
+name = "EDS"
+status = "EXPERIMENTAL"
+summary = "Detects hardware and reports known support; does not install drivers"
+
+[[component]]
+id = "installer"
+name = "meta-installer"
+status = "EXPERIMENTAL"
+summary = "Keyboard-driven interface that saves a plan; does not install"
+
+[[component]]
+id = "package-policy"
+name = "Package policy"
+status = "EXPERIMENTAL"
+summary = "Isolation and override rules as tested code; not connected to pkg"
+
+[[component]]
+id = "kernel"
+name = "Kernel build"
+status = "EXPERIMENTAL"
+summary = "FreeBSD GENERIC with a META identity; built and booted in QEMU"
+
+[[component]]
+id = "network"
+name = "META Network"
+status = "RESEARCH REQUIRED"
+summary = "NetworkManager-compatible D-Bus service; only status reporting exists"
+
+[[component]]
+id = "metaupd-dbus"
+name = "metaupd D-Bus"
+status = "PLANNED"
+summary = "Interface definition only; no daemon"
+
+[[component]]
+id = "editions"
+name = "Editions"
+status = "PLANNED"
+summary = "Debian and Arch compatibility roots; metadata packages only"
+
+[[component]]
+id = "native-packages"
+name = "Native packages"
+status = "EXPERIMENTAL"
+summary = "FreeBSD package of the META tools; no repository"
+
+[[component]]
+id = "linuxkpi"
+name = "LinuxKPI"
+status = "RESEARCH REQUIRED"
+summary = "Expanded Linux driver compatibility"
+
+[[component]]
+id = "desktops"
+name = "Desktops"
+status = "PLANNED"
+summary = "Package sets recorded; none tested"
+
+[[component]]
+id = "desktop-updates"
+name = "Desktop updates"
+status = "PLANNED"
+summary = "Discover, GNOME Software and META Update Manager integration"
+
+[[component]]
+id = "jails"
+name = "Containers"
+status = "PLANNED"
+summary = "Jail templates for compatibility environments"
+
+[[component]]
+id = "coreutils"
+name = "Core utilities"
+status = "PLANNED"
+summary = "FreeBSD base utilities; no replacements written"
+
+[[component]]
+id = "bootloader"
+name = "GRUB"
+status = "RESEARCH REQUIRED"
+summary = "FreeBSD's loader is used until GRUB is validated"
+
+[[component]]
+id = "iso"
+name = "Installation media"
+status = "PLANNED"
+summary = "No bootable image exists"

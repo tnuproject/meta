@@ -1,0 +1,166 @@
+schema = 1
+
+[[entry]]
+id = "ethernet-virtio"
+name = "VirtIO network adapter"
+category = "ethernet"
+support = "native"
+validation = "validated"
+driver = "virtio_pci"
+source = "https://man.freebsd.org/cgi/man.cgi?query=vtnet&sektion=4"
+
+[[entry.tested_on]]
+release = "15.1-RELEASE-p7"
+machine = "QEMU i440FX"
+date = "2026-11-25"
+result = "vtnet0 attached; IPv4 and IPv6 autoconfiguration and package downloads worked"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x1af4
+devices = [0x1000, 0x1041]
+
+[[entry]]
+id = "ethernet-intel-em"
+name = "Intel Gigabit Ethernet (em)"
+category = "ethernet"
+support = "native"
+validation = "documented"
+driver = "em"
+source = "https://man.freebsd.org/cgi/man.cgi?query=em&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x8086
+kind = "ethernet"
+
+[[entry]]
+id = "ethernet-intel-igb"
+name = "Intel Gigabit Ethernet (igb)"
+category = "ethernet"
+support = "native"
+validation = "documented"
+driver = "igb"
+source = "https://man.freebsd.org/cgi/man.cgi?query=igb&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x8086
+kind = "ethernet"
+
+[[entry]]
+id = "ethernet-intel-igc"
+name = "Intel 2.5 Gigabit Ethernet (igc)"
+category = "ethernet"
+support = "native"
+validation = "documented"
+driver = "igc"
+source = "https://man.freebsd.org/cgi/man.cgi?query=igc&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x8086
+kind = "ethernet"
+
+[[entry]]
+id = "ethernet-realtek-re"
+name = "Realtek Ethernet (re)"
+category = "ethernet"
+support = "native"
+validation = "documented"
+driver = "re"
+source = "https://man.freebsd.org/cgi/man.cgi?query=re&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x10ec
+kind = "ethernet"
+
+[[entry]]
+id = "wifi-intel-iwlwifi"
+name = "Intel Wi-Fi (iwlwifi, LinuxKPI)"
+category = "wireless"
+support = "linuxkpi"
+validation = "documented"
+driver = "iwlwifi"
+packages = ["wifi-firmware-iwlwifi-kmod"]
+source = "https://www.freebsd.org/status/report-2026-01-2026-03/lkpi-wireless/"
+notes = "Feature level and suspend support vary by adapter and FreeBSD release."
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x8086
+kind = "wireless"
+
+[[entry]]
+id = "wifi-intel-iwm"
+name = "Intel Wi-Fi 5 (iwm, native)"
+category = "wireless"
+support = "native"
+validation = "documented"
+driver = "iwm"
+source = "https://man.freebsd.org/cgi/man.cgi?query=iwm&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x8086
+kind = "wireless"
+
+[[entry]]
+id = "wifi-intel-iwx"
+name = "Intel Wi-Fi 6 (iwx, native)"
+category = "wireless"
+support = "native"
+validation = "documented"
+driver = "iwx"
+source = "https://man.freebsd.org/cgi/man.cgi?query=iwx&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x8086
+kind = "wireless"
+
+[[entry]]
+id = "wifi-realtek-rtw88"
+name = "Realtek Wi-Fi 5 (rtw88, LinuxKPI)"
+category = "wireless"
+support = "linuxkpi"
+validation = "documented"
+driver = "rtw88"
+packages = ["wifi-firmware-rtw88-kmod"]
+source = "https://man.freebsd.org/cgi/man.cgi?query=rtw88&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x10ec
+kind = "wireless"
+
+[[entry]]
+id = "wifi-realtek-rtw89"
+name = "Realtek Wi-Fi 6 (rtw89, LinuxKPI)"
+category = "wireless"
+support = "linuxkpi"
+validation = "documented"
+driver = "rtw89"
+packages = ["wifi-firmware-rtw89-kmod"]
+source = "https://man.freebsd.org/cgi/man.cgi?query=rtw89&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x10ec
+kind = "wireless"
+
+[[entry]]
+id = "bluetooth-usb"
+name = "USB Bluetooth adapter"
+category = "bluetooth"
+support = "native"
+validation = "documented"
+driver = "ubt"
+modules = ["ng_ubt"]
+source = "https://docs.freebsd.org/en/books/handbook/advanced-networking/"
+notes = "Some adapters additionally need firmware loaded at attach time."
+
+[[entry.matches]]
+bus = "usb"
+kind = "bluetooth"

@@ -1,0 +1,18 @@
+[package]
+name = "meta-eds-db"
+description = "EDS hardware compatibility database"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+meta-eds-detect.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+toml.workspace = true

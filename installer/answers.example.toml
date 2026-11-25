@@ -1,0 +1,22 @@
+# Example answer file: meta-installer --answers installer/answers.example.toml
+# Answer files cannot contain passwords.
+mode = "typical"
+language = "en_US.UTF-8"
+keymap = "us"
+timezone = "Europe/Rome"
+hostname = "meta"
+network = "dhcp"
+disk = "ada0"
+filesystem = "zfs"
+encrypt = false
+swap_gib = 4
+edition = "none"
+desktop = "xfce"
+linux_compat = true
+bootloader = "freebsd-loader"
+
+[user]
+name = "alice"
+full_name = "Alice Example"
+groups = ["video"]
+sudo = true

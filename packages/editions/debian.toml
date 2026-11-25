@@ -1,0 +1,19 @@
+# META Debian Edition. Status: PLANNED. See docs/packaging/editions.md.
+id = "debian"
+name = "META Debian Edition"
+ecosystem = "debian"
+root = "/compat/meta/debian"
+package_manager = "apt"
+package_format = "deb"
+
+[[shared]]
+host = "/home"
+inside = "/home"
+writable = true
+reason = "user data"
+
+[[shared]]
+host = "/tmp"
+inside = "/tmp"
+writable = true
+reason = "sockets and temporary files shared with native programs"

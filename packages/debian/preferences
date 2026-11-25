@@ -1,0 +1,10 @@
+Explanation: A META compatibility root runs on the FreeBSD kernel. Kernels,
+Explanation: boot loaders and firmware have no function here.
+Package: linux-image-* linux-headers-* grub-* grub2-* shim-* systemd-boot* firmware-* initramfs-tools dracut
+Pin: release *
+Pin-Priority: -1
+
+Explanation: The host's rc(8) manages services.
+Package: systemd-sysv sysvinit-core
+Pin: release *
+Pin-Priority: -1

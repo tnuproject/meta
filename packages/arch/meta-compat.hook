@@ -1,0 +1,19 @@
+# A META compatibility root runs on the FreeBSD kernel. Kernels and boot loaders
+# have no function here, so installing them is refused.
+[Trigger]
+Operation = Install
+Type = Package
+Target = linux
+Target = linux-lts
+Target = linux-zen
+Target = linux-hardened
+Target = linux-firmware
+Target = grub
+Target = refind
+Target = limine
+
+[Action]
+Description = Refusing kernels and boot loaders in a META compatibility root
+When = PreTransaction
+Exec = /usr/bin/false
+AbortOnFail
