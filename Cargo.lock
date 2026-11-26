@@ -1056,7 +1056,6 @@ name = "meta-linux"
 version = "26.0.0-dev.0"
 dependencies = [
  "clap",
- "linux2bsd",
  "meta-analyzer",
  "meta-common",
  "meta-linux-vm",
@@ -1146,7 +1145,6 @@ name = "meta-pkg-policy"
 version = "26.0.0-dev.0"
 dependencies = [
  "serde",
- "thiserror",
  "toml",
 ]
 

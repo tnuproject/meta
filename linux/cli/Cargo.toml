@@ -22,7 +22,6 @@ path = "src/exec.rs"
 
 [dependencies]
 clap.workspace = true
-linux2bsd.workspace = true
 meta-analyzer.workspace = true
 meta-common.workspace = true
 meta-linux-vm.workspace = true

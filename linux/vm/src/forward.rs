@@ -114,7 +114,9 @@ pub fn run(
     Ok(status.code().unwrap_or(crate::guest::SSH_FAILURE))
 }
 
-#[cfg(all(test, unix))]
+// Two attributes rather than all(test, unix), so that clippy sees test code.
+#[cfg(test)]
+#[cfg(unix)]
 mod tests {
     use super::*;
     use std::process::Command;
@@ -139,10 +141,9 @@ mod tests {
         assert_eq!(String::from_utf8_lossy(&output.stdout), "/\na b|$x\n");
         let killed = local(home.path(), &["sh", "-c", "kill -TERM $$"]);
         assert_eq!(killed.status.code(), Some(143));
-        assert_eq!(
-            local(home.path(), &["/nonexistent"]).status.code(),
-            Some(127)
-        );
+        // 127 by POSIX; the /bin/sh of macOS says 126.
+        let missing = local(home.path(), &["/nonexistent"]).status.code();
+        assert!(matches!(missing, Some(126 | 127)), "{missing:?}");
         assert_eq!(std::fs::read_dir(home.path()).unwrap().count(), 0);
     }
 
