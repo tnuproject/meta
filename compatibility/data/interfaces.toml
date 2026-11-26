@@ -1,0 +1,175 @@
+# Kernel interfaces and environments: which runtime provides them, and how that is
+# known. System calls are in linuxulator-*.toml, generated from FreeBSD's source.
+#
+# "userspace" is a managed Linux userland. Its kernel is FreeBSD's, so it provides
+# no kernel interface that Linuxulator lacks.
+schema = 1
+
+[[interface]]
+requirement = "kernel:namespaces"
+summary = "Linux namespaces"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "unshare and setns are placeholders, and clone has no namespace flags", reference = "FreeBSD 15.1 sys/compat/linux/linux_dummy.c" },
+    { source = "test", detail = "unshare fails with ENOSYS under Linuxulator and works in a Debian guest", reference = "tests/vm/guest/mlce-requirements.sh" },
+]
+
+[[interface]]
+requirement = "kernel:cgroup-v1"
+summary = "Control groups, version 1"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "configurable" }
+evidence = [
+    { source = "source-code", detail = "no cgroup filesystem exists in FreeBSD", reference = "FreeBSD 15.1 sys/compat, sys/fs" },
+    { source = "documentation", detail = "needs a guest whose init system still supports version 1", reference = "https://www.freedesktop.org/software/systemd/man/252/systemd.html" },
+]
+
+[[interface]]
+requirement = "kernel:cgroup-v2"
+summary = "Control groups, version 2"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "no cgroup filesystem exists in FreeBSD", reference = "FreeBSD 15.1 sys/compat, sys/fs" },
+    { source = "test", detail = "a memory limit set through systemd took effect in a Debian 12 guest", reference = "tests/vm/guest/mlce-machine.sh" },
+]
+
+[[interface]]
+requirement = "kernel:modules"
+summary = "Loading Linux kernel modules"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "init_module, finit_module and delete_module are placeholders", reference = "FreeBSD 15.1 sys/compat/linux/linux_dummy.c" },
+    { source = "test", detail = "finit_module fails with ENOSYS under Linuxulator; modprobe and rmmod work in a Debian 12 guest", reference = "tests/vm/guest/mlce-requirements.sh" },
+]
+
+[[interface]]
+requirement = "kernel:bpf"
+summary = "eBPF programs"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "bpf is a placeholder", reference = "FreeBSD 15.1 sys/compat/linux/linux_dummy.c" },
+    { source = "test", detail = "bpf fails with ENOSYS under Linuxulator and exists in a Debian 12 guest", reference = "tests/vm/guest/mlce-requirements.sh" },
+]
+
+[[interface]]
+requirement = "kernel:io-uring"
+summary = "Asynchronous I/O with io_uring"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "io_uring_setup, _enter and _register are placeholders", reference = "FreeBSD 15.1 sys/compat/linux/linux_dummy.c" },
+    { source = "test", detail = "io_uring_setup fails with ENOSYS under Linuxulator and exists in a Debian 12 guest", reference = "tests/vm/guest/mlce-requirements.sh" },
+]
+
+[[interface]]
+requirement = "kernel:perf"
+summary = "Performance events"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "partial" }
+evidence = [
+    { source = "source-code", detail = "perf_event_open is a placeholder", reference = "FreeBSD 15.1 sys/compat/linux/linux_dummy.c" },
+    { source = "documentation", detail = "bhyve does not give guests hardware performance counters", reference = "bhyve(8)" },
+]
+
+[[interface]]
+requirement = "kernel:netfilter"
+summary = "Linux packet filtering"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "Linuxulator's netlink covers routes and addresses", reference = "FreeBSD 15.1 sys/compat/linux/linux_netlink.c" },
+]
+
+[[interface]]
+requirement = "kernel:overlayfs"
+summary = "The overlay filesystem"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "mount translates only a few filesystem types", reference = "FreeBSD 15.1 sys/compat/linux/linux_file.c" },
+]
+
+[[interface]]
+requirement = "kernel:fuse"
+summary = "Filesystems in userspace"
+provision = { native = "missing", linuxulator = "unknown", userspace = "unknown", virtual-machine = "provided" }
+evidence = [
+    { source = "documentation", detail = "FreeBSD has its own FUSE; Linux programs mounting through it have not been tested", reference = "fusefs(5)" },
+]
+
+[[interface]]
+requirement = "init:systemd"
+summary = "systemd as the first process"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "documentation", detail = "systemd does not work under Linux binary compatibility", reference = "https://docs.freebsd.org/en/books/handbook/linuxemu/" },
+    { source = "test", detail = "systemd is process 1 in a Debian 12 guest", reference = "tests/vm/guest/mlce-machine.sh" },
+]
+
+[[interface]]
+requirement = "container:docker"
+summary = "Docker engine"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "configurable" }
+evidence = [
+    { source = "documentation", detail = "needs namespaces, cgroups, overlayfs and netfilter", reference = "https://docs.docker.com/engine/" },
+]
+
+[[interface]]
+requirement = "container:containerd"
+summary = "containerd"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "configurable" }
+evidence = [
+    { source = "documentation", detail = "needs namespaces and cgroups", reference = "https://containerd.io/" },
+]
+
+[[interface]]
+requirement = "container:podman"
+summary = "Podman with Linux containers"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "configurable" }
+evidence = [
+    { source = "documentation", detail = "FreeBSD packages Podman for jails; Linux containers that need namespaces or cgroups need a Linux kernel", reference = "https://podman.io/docs/installation" },
+]
+
+[[interface]]
+requirement = "device:kvm"
+summary = "Hardware virtualization from inside"
+provision = { native = "missing", linuxulator = "missing", userspace = "missing", virtual-machine = "missing" }
+evidence = [
+    { source = "documentation", detail = "bhyve does not offer nested virtualization to guests", reference = "bhyve(8)" },
+]
+
+[[interface]]
+requirement = "device:gpu"
+summary = "Accelerated graphics"
+provision = { native = "unknown", linuxulator = "unknown", userspace = "missing", virtual-machine = "missing" }
+evidence = [
+    { source = "source-code", detail = "bhyve has a framebuffer and PCI passthrough, but no virtio-gpu", reference = "FreeBSD 15.1 usr.sbin/bhyve" },
+    { source = "source-code", detail = "meta-compat does not expose /dev/dri", reference = "packages/compat/src/mounts.rs" },
+]
+
+[[interface]]
+requirement = "device:tun"
+summary = "Virtual network devices"
+provision = { native = "missing", linuxulator = "unknown", userspace = "missing", virtual-machine = "provided" }
+evidence = [
+    { source = "source-code", detail = "meta-compat's device rules hide it", reference = "packages/compat/src/mounts.rs" },
+]
+
+[[interface]]
+requirement = "desktop:x11"
+summary = "X11 applications"
+provision = { native = "provided", linuxulator = "unknown", userspace = "missing", virtual-machine = "partial" }
+evidence = [
+    { source = "test", detail = "X11 forwarding over SSH, without acceleration", reference = "tests/vm/guest/mlce-gui.sh" },
+]
+
+[[interface]]
+requirement = "desktop:wayland"
+summary = "Wayland applications"
+provision = { native = "provided", linuxulator = "unknown", userspace = "missing", virtual-machine = "missing" }
+evidence = [
+    { source = "source-code", detail = "no Wayland proxy is installed", reference = "linux/vm" },
+]
+
+[[interface]]
+requirement = "desktop:audio"
+summary = "Sound"
+provision = { native = "provided", linuxulator = "unknown", userspace = "missing", virtual-machine = "missing" }
+evidence = [
+    { source = "documentation", detail = "bhyve emulates an HD Audio device; META does not configure it", reference = "bhyve(8)" },
+]

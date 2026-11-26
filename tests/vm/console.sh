@@ -22,7 +22,7 @@ command=(qemu-system-x86_64 -accel "$accel" -cpu "$cpu" -smp 4 -m "${META_VM_MEM
 	-display none -daemonize -pidfile "$work/pid"
 	-chardev "socket,id=console,path=$work/serial,server=on,wait=off" -serial chardev:console
 	-monitor "unix:$work/monitor,server=on,wait=off"
-	-netdev user,id=n0 -device virtio-net-pci,netdev=n0)
+	-netdev "user,id=n0" -device "virtio-net-pci,netdev=n0")
 if [ "$disk" != none ]; then
 	if [ ! -e "$disk" ]; then
 		qemu-img create -q -f qcow2 "$disk" 40G
@@ -41,7 +41,7 @@ fi
 if [ "$firmware" = uefi ]; then
 	cp /usr/share/OVMF/OVMF_VARS_4M.fd "$work/vars.fd"
 	command+=(-machine q35
-		-drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd
+		-drive "if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd"
 		-drive "if=pflash,format=raw,file=$work/vars.fd")
 fi
 "${command[@]}"

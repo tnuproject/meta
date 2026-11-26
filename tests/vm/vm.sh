@@ -92,14 +92,15 @@ start() {
 # Boots the machine in the foreground when META_VM_FOREGROUND is set.
 boot() {
 	local accel=tcg cpu=max
-	if [ -w /dev/kvm ]; then accel=kvm cpu=host; fi
-	local command=(qemu-system-x86_64 -accel "$accel" -cpu "$cpu" -smp "${META_VM_CPUS:-8}" -m 8G
-		-display none -serial "file:$DIR/console.log"
+	# Without an invariant TSC, guests of guests ask the hypervisor for the time.
+	if [ -w /dev/kvm ]; then accel=kvm cpu=host,migratable=off,+invtsc; fi
+	local command=(qemu-system-x86_64 -accel "$accel" -cpu "$cpu" -smp "${META_VM_CPUS:-8}" -m "${META_VM_MEMORY:-8G}"
+		-display none -serial "file:$DIR/console.log" -device virtio-rng-pci
 		-drive "file=$DIR/overlay.qcow2,if=virtio,format=qcow2"
 		-drive "file=$DIR/target.qcow2,if=virtio,format=qcow2"
 		-cdrom "$DIR/seed.iso" -pidfile "$DIR/pid"
-		-netdev "user,id=n0,hostfwd=tcp:127.0.0.1:$PORT-:22" -device virtio-net-pci,netdev=n0
-		-netdev user,id=n1,net=10.0.3.0/24 -device virtio-net-pci,netdev=n1)
+		-netdev "user,id=n0,hostfwd=tcp:127.0.0.1:$PORT-:22" -device "virtio-net-pci,netdev=n0"
+		-netdev "user,id=n1,net=10.0.3.0/24" -device "virtio-net-pci,netdev=n1")
 	if [ -n "${META_VM_FOREGROUND:-}" ]; then
 		exec "${command[@]}"
 	fi
@@ -140,7 +141,7 @@ reboot)
 stop)
 	guest '(sleep 1; shutdown -p now) >/dev/null 2>&1 &' || true
 	for _ in $(seq 1 30); do
-		[ -f "$DIR/pid" ] && kill -0 "$(cat "$DIR/pid")" 2>/dev/null || break
+		if [ ! -f "$DIR/pid" ] || ! kill -0 "$(cat "$DIR/pid")" 2>/dev/null; then break; fi
 		sleep 1
 	done
 	rm -f "$DIR/overlay.qcow2" "$DIR/target.qcow2" "$DIR/seed.iso" "$DIR/console.log"

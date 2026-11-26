@@ -941,6 +941,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "meta-analyzer"
+version = "26.0.0-dev.0"
+dependencies = [
+ "goblin",
+ "hex",
+ "linux2bsd",
+ "meta-model",
+ "serde",
+ "sha2",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
 name = "meta-cli"
 version = "26.0.0-dev.0"
 dependencies = [
@@ -994,6 +1008,7 @@ dependencies = [
  "meta-common",
  "meta-eds-db",
  "meta-eds-detect",
+ "meta-mdcf",
  "serde",
  "serde_json",
  "tempfile",
@@ -1034,6 +1049,76 @@ dependencies = [
  "thiserror",
  "toml",
  "zeroize",
+]
+
+[[package]]
+name = "meta-linux"
+version = "26.0.0-dev.0"
+dependencies = [
+ "clap",
+ "linux2bsd",
+ "meta-analyzer",
+ "meta-common",
+ "meta-linux-vm",
+ "meta-maes",
+ "meta-model",
+ "rustix",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "meta-linux-vm"
+version = "26.0.0-dev.0"
+dependencies = [
+ "hex",
+ "meta-common",
+ "meta-compat",
+ "serde",
+ "sha2",
+ "signal-hook",
+ "tempfile",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
+name = "meta-maes"
+version = "26.0.0-dev.0"
+dependencies = [
+ "linux2bsd",
+ "meta-analyzer",
+ "meta-common",
+ "meta-compat",
+ "meta-linux-vm",
+ "meta-model",
+ "serde",
+ "tempfile",
+]
+
+[[package]]
+name = "meta-mdcf"
+version = "26.0.0-dev.0"
+dependencies = [
+ "meta-common",
+ "meta-eds-db",
+ "meta-eds-detect",
+ "meta-model",
+ "serde",
+ "tempfile",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
+name = "meta-model"
+version = "26.0.0-dev.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+ "toml",
 ]
 
 [[package]]

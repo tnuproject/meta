@@ -106,6 +106,17 @@ pub fn read_meta_release(root: &Path) -> Option<MetaRelease> {
     parse_meta_release(&text)
 }
 
+/// ZFS pool holding the root filesystem, from `mount -p`.
+pub fn root_pool(runner: &dyn CommandRunner) -> Option<String> {
+    let table = runner.stdout("/sbin/mount", &["-p"]).ok()?;
+    let source = table
+        .lines()
+        .map(|line| line.split_whitespace().collect::<Vec<_>>())
+        .find(|fields| fields.get(1) == Some(&"/") && fields.get(2) == Some(&"zfs"))
+        .and_then(|fields| fields.first().map(|s| (*s).to_owned()))?;
+    source.split('/').next().map(str::to_owned)
+}
+
 fn parse_meta_release(text: &str) -> Option<MetaRelease> {
     let field = |key: &str| {
         text.lines()

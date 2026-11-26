@@ -1,6 +1,7 @@
 # Containers
 
-Status: EXPERIMENTAL for compatibility roots, PLANNED for anything else.
+Status: EXPERIMENTAL. This document is about compatibility roots, which are FreeBSD jails. Linux
+container engines run in [Linux machines](../linux-compatibility/CONTAINER_INTEGRATION.md).
 
 A compatibility root is a ZFS dataset with a Linux distribution's userland, run as a FreeBSD
 jail. `meta-compat` manages it:

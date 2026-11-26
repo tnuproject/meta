@@ -10,6 +10,16 @@ META has not been released. Versions follow `MAJOR.MINOR[.PATCH][-STAGE N]`.
 
 ### Added
 
+- Shared compatibility model: requirements with ranked evidence, registries of Linux
+  system calls and LinuxKPI generated from FreeBSD's source, a compatibility graph.
+- MDCF: ACPI and USB interface detection, evaluated verdicts, firmware through fwget,
+  capabilities, LinuxKPI lookups, porting predictions, and planned, confirmed driver
+  operations in `meta-eds`.
+- Linux machines: `meta-linux` creates Debian and Arch guests from images pinned by
+  digest and runs them under bhyve as their owner, in a jail, with shares, isolated or
+  open networking, and Linux containers inside.
+- `meta-exec`: program analysis, runtime selection with explanations, and launching
+  with arguments, streams, exit codes and signals passed through.
 - Rust workspace with the `meta` command and shared platform detection.
 - linux2BSD prototype: ELF identification, library and symbol version resolution
   inside Linux userlands, compatibility database, running programs through

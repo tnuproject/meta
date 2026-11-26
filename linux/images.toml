@@ -1,0 +1,21 @@
+# Guest images. The digest is what is trusted; the URL only says where to look. An
+# image that disappears from its server has to be pinned again in a reviewed change.
+schema = 1
+
+[[image]]
+id = "debian-12"
+name = "Debian 12 (bookworm)"
+distribution = "debian"
+url = "https://cloud.debian.org/images/cloud/bookworm/20261117-2665/debian-12-generic-amd64-20261117-2665.qcow2"
+digest = "sha512:d597a8b422a0fa7f7cf1a0477d23be7f7514f32e57ccb8d0c69156e1be4a7e1712fb64aee6298520d70aa573b801d0cfe3392ab5de39829728760c0cf99ef4ec"
+provenance = "SHA512SUMS of cloud.debian.org over HTTPS, 2026-11-25"
+cgroups = ["v2", "v1"]
+
+[[image]]
+id = "arch"
+name = "Arch Linux"
+distribution = "arch"
+url = "https://geo.mirror.pkgbuild.com/images/v20261115.625457/Arch-Linux-x86_64-cloudimg-20261115.625457.qcow2"
+digest = "sha256:dbd02830f6eb0fe07ef6e5edaddbae8b577ce4296d9e79118904704cce0a1f60"
+provenance = "SHA256 file of geo.mirror.pkgbuild.com over HTTPS, 2026-11-25"
+cgroups = ["v2"]

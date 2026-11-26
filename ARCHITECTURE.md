@@ -11,9 +11,10 @@ replaced only when a concrete META feature cannot be built on it.
 | Filesystems | FreeBSD (ZFS, UFS) | Layout | EXPERIMENTAL |
 | Network stack | FreeBSD | None | PLANNED |
 | Network management | META Network | D-Bus service for wired networks | EXPERIMENTAL |
-| Drivers | FreeBSD, LinuxKPI | EDS detection and database | EXPERIMENTAL |
+| Drivers | FreeBSD, LinuxKPI | EDS detection, evaluation and plans | EXPERIMENTAL |
 | Linux system calls | FreeBSD Linuxulator | None | PLANNED |
-| Linux programs | linux2BSD | Inspection, runtime choice, diagnostics | EXPERIMENTAL |
+| Linux programs | linux2BSD, meta-exec | Inspection, runtime choice, launching | EXPERIMENTAL |
+| Linux kernel features | bhyve, Linux in a guest | Machines and containers | EXPERIMENTAL |
 | Host packages | FreeBSD pkg | META packages, override policy | EXPERIMENTAL |
 | Linux packages | APT, Pacman in their own roots | Isolation, meta-compat | EXPERIMENTAL |
 | Updates | metaupd | Verification, installation, rollback | EXPERIMENTAL |
@@ -44,6 +45,8 @@ replaced only when a concrete META feature cannot be built on it.
 | [cli](cli) | The `meta` command |
 | [linux2bsd](linux2bsd/README.md) | ELF inspection, library resolution, runtime choice |
 | [eds](eds/README.md) | Hardware detection, driver database, `meta-eds` |
+| [compatibility](docs/compatibility/COMPATIBILITY_MODEL.md) | Shared model and registries |
+| [linux](docs/linux-compatibility/MLCE_ARCHITECTURE.md) | Machines, program analysis, runtime selection, `meta-linux`, `meta-exec` |
 | [networking](networking/README.md) | Network status; META Network design |
 | [metaupd](metaupd/README.md) | Update metadata, verification, client, release tool |
 | [installer](installer/README.md) | `meta-installer` |
@@ -66,6 +69,10 @@ meta-common
                                                   '-- metaupd-release
 meta-pkg-policy (no dependencies on other META crates)
 meta-compat = common + pkg-policy; used by linux2bsd
+meta-model (no dependencies); used by meta-mdcf, meta-analyzer, meta-maes
+meta-mdcf = eds-db + model; used by meta-eds
+meta-linux-vm = common + compat
+meta-maes = analyzer + linux2bsd + compat + linux-vm; used by meta-linux, meta-exec
 meta-netd = net + meta-dbus; metaupdd = metaupd + meta-dbus
 meta = common + net + eds + linux2bsd + pkg-policy
 ```

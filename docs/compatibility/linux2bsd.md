@@ -5,6 +5,9 @@ Status: EXPERIMENTAL.
 linux2BSD makes Linux programs as transparent as FreeBSD allows. It decides whether a
 program can run, where its libraries come from, and what is missing when it cannot.
 
+[meta-exec](../linux-compatibility/RUNTIME_SELECTION.md) builds on it, and also considers machines
+with a Linux kernel.
+
 ## What it is not
 
 Linux and FreeBSD programs for one CPU use the same instructions. The differences are

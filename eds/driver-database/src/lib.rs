@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 use meta_eds_detect::{Bus, Device, Kind};
 use serde::{Deserialize, Serialize};
 
-pub const SCHEMA: u32 = 1;
+pub const SCHEMA: u32 = 2;
 
 /// Where driver support comes from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -23,6 +23,10 @@ pub enum Support {
     FirmwareOnly,
     /// Handled by a userspace program.
     Userspace,
+    /// Needs something that neither FreeBSD nor META provides.
+    ExternalDependency,
+    PartiallySupported,
+    Experimental,
     /// Known not to work.
     Unsupported,
 }
@@ -71,12 +75,61 @@ pub struct Entry {
     pub packages: Vec<String>,
     /// Upstream documentation for the claim.
     pub source: String,
+    /// Architectures it exists for; empty means no restriction is recorded.
+    #[serde(default)]
+    pub arch: Vec<String>,
+    /// `__FreeBSD_version` range it is known for.
+    #[serde(default)]
+    pub osreldate: Option<Range>,
+    /// Firmware packages or modules.
+    #[serde(default)]
+    pub firmware: Vec<String>,
+    /// LinuxKPI interfaces that decide whether it can work.
+    #[serde(default)]
+    pub linuxkpi: Vec<String>,
+    /// Kernel symbols it needs beyond the stable interfaces.
+    #[serde(default)]
+    pub symbols: Vec<String>,
+    /// Kernel options that have to be set.
+    #[serde(default)]
+    pub kernel_config: Vec<String>,
+    /// Programs or services it needs in userspace.
+    #[serde(default)]
+    pub userspace: Vec<String>,
+    /// Modules it cannot be used with.
+    #[serde(default)]
+    pub conflicts: Vec<String>,
+    #[serde(default)]
+    pub limitations: Vec<String>,
     #[serde(default)]
     pub notes: Option<String>,
     #[serde(default)]
     pub tested_on: Vec<Tested>,
     #[serde(default)]
     pub matches: Vec<Match>,
+}
+
+impl Entry {
+    /// The category in the compatibility model.
+    pub fn category_label(&self) -> &'static str {
+        match self.support {
+            Support::Native => "NATIVE_FREEBSD",
+            Support::Linuxkpi => "LINUXKPI_COMPATIBLE",
+            Support::FirmwareOnly => "FIRMWARE_ONLY",
+            Support::Userspace => "USERSPACE_INTEGRATION",
+            Support::ExternalDependency => "EXTERNAL_DEPENDENCY",
+            Support::PartiallySupported => "PARTIALLY_SUPPORTED",
+            Support::Experimental => "EXPERIMENTAL",
+            Support::Unsupported => "UNSUPPORTED",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Range {
+    pub min: u32,
+    pub max: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -188,6 +241,9 @@ impl Database {
                     "unsupported hardware cannot name packages or modules",
                 ));
             }
+            if entry.osreldate.is_some_and(|range| range.min > range.max) {
+                return Err(invalid("the kernel version range is empty"));
+            }
             if entry
                 .matches
                 .iter()
@@ -247,13 +303,11 @@ mod tests {
 
     fn pci(vendor: u16, device: u16, class: u32, driver: Option<&str>) -> Device {
         Device {
-            bus: Bus::Pci,
-            location: "pci0:0:0:0".into(),
             vendor,
             device,
             class,
             driver: driver.map(str::to_owned),
-            description: None,
+            ..Device::new(Bus::Pci, "pci0:0:0:0")
         }
     }
 
@@ -307,7 +361,7 @@ mod tests {
 
     fn entry(extra: &str) -> Result<Database, DatabaseError> {
         let text = format!(
-            "schema = 1\n[[entry]]\nid = \"x\"\nname = \"X\"\ncategory = \"gpu\"\n\
+            "schema = 2\n[[entry]]\nid = \"x\"\nname = \"X\"\ncategory = \"gpu\"\n\
              support = \"native\"\nvalidation = \"documented\"\nsource = \"https://example.org\"\n{extra}"
         );
         Database::parse(&[("x.toml", &text)])

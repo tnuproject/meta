@@ -1,0 +1,63 @@
+# What to do about interfaces LinuxKPI lacks or has not finished. A short list: an
+# entry is written when a driver analysis needs it, never in advance.
+schema = 1
+
+[[advice]]
+interface = "mhi_*"
+strategy = "upstream-contribution"
+detail = "The MHI bus has declarations only; firmware download and event rings have to be written"
+reference = "linuxkpi/ath11k.md"
+
+[[advice]]
+interface = "qmi_*"
+strategy = "upstream-contribution"
+detail = "QMI over QRTR is the firmware handshake of Qualcomm devices"
+reference = "linuxkpi/ath11k.md"
+
+[[advice]]
+interface = "rhashtable_*"
+strategy = "freebsd-equivalent"
+detail = "hash(9) provides the storage; resizing is not needed for correctness"
+reference = "https://man.freebsd.org/cgi/man.cgi?query=hashinit&sektion=9"
+
+[[advice]]
+interface = "crypto_*"
+strategy = "freebsd-equivalent"
+detail = "crypto(9) provides the algorithms"
+reference = "https://man.freebsd.org/cgi/man.cgi?query=crypto&sektion=9"
+
+[[advice]]
+interface = "iommu_*"
+strategy = "driver-adaptation"
+detail = "bus_dma(9) uses the IOMMU itself; drivers should not program it"
+reference = "https://man.freebsd.org/cgi/man.cgi?query=bus_dma&sektion=9"
+
+[[advice]]
+interface = "of_*"
+strategy = "driver-adaptation"
+detail = "Device tree code is not used on amd64 and can be left out of the build"
+reference = "linuxkpi/ath11k.md"
+
+[[advice]]
+interface = "rproc_*"
+strategy = "unsupported"
+detail = "Remote processors of Qualcomm systems on chip"
+reference = "linuxkpi/ath11k.md"
+
+[[advice]]
+interface = "qcom_smem_*"
+strategy = "unsupported"
+detail = "Shared memory of Qualcomm systems on chip"
+reference = "linuxkpi/ath11k.md"
+
+[[advice]]
+interface = "relay_*"
+strategy = "driver-adaptation"
+detail = "Debugging only; leave it out of the build"
+reference = "linuxkpi/ath11k.md"
+
+[[advice]]
+interface = "trace_*"
+strategy = "driver-adaptation"
+detail = "Tracing only; leave it out of the build"
+reference = "linuxkpi/ath11k.md"

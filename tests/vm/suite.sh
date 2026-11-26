@@ -7,7 +7,7 @@ set -eu
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 DIR=${META_VM_DIR:-$HOME/.cache/meta-freebsd-vm}
-vm() { "$HERE/vm.sh" "$@"; }
+vm() { bash "$HERE/vm.sh" "$@"; }
 
 # guest SCRIPT [VARIABLE=VALUE...]
 guest() {
@@ -23,7 +23,7 @@ guest() {
 console() {
 	local firmware=$1 disk=$2 script=$3 iso=${4:-}
 	echo "== $script ($firmware)"
-	"$HERE/console.sh" "$firmware" "$disk" ${iso:+"$iso"} <"$HERE/guest/$script.serial"
+	bash "$HERE/console.sh" "$firmware" "$disk" ${iso:+"$iso"} <"$HERE/guest/$script.serial"
 }
 
 packages() { echo "for p in $*; do pkg info -e \$p || pkg install -qy \$p </dev/null; done" | vm run; }
@@ -73,7 +73,7 @@ for target in "$@"; do
 		vm reboot
 		;;
 	m10)
-		packages dbus polkit xfce xorg-vfbserver xdotool scrot py312-pygobject gtk3 noto-basic
+		packages dbus polkit xfce xorg-vfbserver xdotool scrot python3 py312-pygobject gtk3 noto-basic
 		guest m10-desktop
 		;;
 	m11)
@@ -84,6 +84,20 @@ for target in "$@"; do
 			META_KEEP=1 console $firmware "$DIR/iso-$firmware.qcow2" m11-install "$DIR/meta.iso"
 			META_KEEP=1 console $firmware "$DIR/iso-$firmware.qcow2" m11-boot
 		done
+		;;
+	mdcf)
+		packages jq
+		guest mdcf
+		;;
+	mlce)
+		guest mlce-machine VM=deb KEEP=1
+		guest mlce-requirements VM=deb
+		echo 'meta-linux vm stop --timeout 900 deb && meta-linux vm set --network open deb && meta-linux vm start --wait 6000 deb' | vm run
+		guest mlce-containers VM=deb
+		guest mlce-gui VM=deb
+		echo 'meta-linux vm stop --timeout 900 deb' | vm run
+		guest mlce-machine VM=debv1 CGROUPS=v1
+		guest mlce-machine VM=arch IMAGE=arch
 		;;
 	m12)
 		guest m12-prepare

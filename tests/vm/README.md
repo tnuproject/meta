@@ -16,6 +16,7 @@ bash tests/vm/vm.sh stop           # deletes the machine
 | `console.sh`, `serial.py` | Second machine, driven through its serial console |
 | `suite.sh` | Runs milestones |
 | `lib.sh` | Helpers for guest scripts |
+| `guest/mlce-*.sh`, `guest/mdcf.sh` | Linux machines under bhyve, and drivers; `suite.sh mlce mdcf` |
 | `guest/*.sh` | Run inside the machine as root; they change it freely |
 | `guest/*.serial` | Console scripts |
 
@@ -24,5 +25,8 @@ m12 the kernel of m1.
 
 In console scripts, `expect` also sees the echo of what was typed. A command that prints a
 marker must not contain it: write `echo DONE''-OK` and expect `DONE-OK`.
+
+`mlce` starts guests inside the guest. It needs nested virtualization, takes hours where that is
+slow, and downloads about 1 GiB of images, which are verified.
 
 Keys are generated inside the machine and disappear with it.

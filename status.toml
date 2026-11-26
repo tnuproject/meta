@@ -61,7 +61,19 @@ summary = "Build script for a BIOS and UEFI image that installs without a networ
 id = "eds"
 name = "EDS"
 status = "EXPERIMENTAL"
-summary = "Detects hardware and reports known support; does not install drivers"
+summary = "Detects hardware, weighs evidence about drivers, plans and carries out changes; no physical hardware tested"
+
+[[component]]
+id = "mlce"
+name = "Linux machines"
+status = "EXPERIMENTAL"
+summary = "Debian and Arch with their own kernel under bhyve, unprivileged; Debian 12 verified in a nested virtual machine"
+
+[[component]]
+id = "maes"
+name = "Adaptive execution"
+status = "EXPERIMENTAL"
+summary = "Finds out what a program needs and runs it in the least demanding runtime that has it"
 
 [[component]]
 id = "network"

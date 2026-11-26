@@ -21,7 +21,11 @@ and single-user mode asks for authentication (`console` marked insecure in `/etc
 
 | Program | Privileges |
 |---|---|
-| `meta`, `linux2bsd`, `meta-eds scan` | None; USB details need root |
+| `meta`, `linux2bsd`, `meta-exec`, `meta-eds` (looking) | None; USB details need root |
+| `meta-eds install`, `enable ID`, ... | root; shows a plan and needs `--yes` |
+| `meta-linux vm create`, `start`, `stop`, `set`, `remove` | root |
+| `meta-linux` otherwise | None; machines and containers of the caller only |
+| bhyve | The machine's owner, in a jail; see [compatibility security](../compatibility/SECURITY.md) |
 | `meta-installer` | None; it only plans |
 | `meta-install-run` | root; erases the confirmed disk |
 | `meta-compat` | root; runs commands as the user who called sudo |

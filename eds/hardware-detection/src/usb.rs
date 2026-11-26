@@ -1,5 +1,7 @@
 //! usbconfig(8) output.
 
+use std::collections::BTreeMap;
+
 use crate::{Bus, Device, Kind, ParseError, hex};
 
 /// Parses `usbconfig dump_device_desc`.
@@ -31,16 +33,57 @@ pub fn parse_usbconfig(text: &str) -> Result<Vec<Device>, ParseError> {
 fn parse_header(line: &str) -> Option<Device> {
     let (location, rest) = line.split_once(": ")?;
     let description = rest.split_once('<')?.1.rsplit_once('>')?.0;
+    // usbconfig does not report which kernel driver is attached.
     Some(Device {
-        bus: Bus::Usb,
-        location: location.to_owned(),
-        vendor: 0,
-        device: 0,
-        class: 0,
-        // usbconfig does not report which kernel driver is attached.
-        driver: None,
         description: Some(description.to_owned()),
+        ..Device::new(Bus::Usb, location)
     })
+}
+
+/// Interface classes per device, from `usbconfig dump_curr_config_desc`.
+pub fn parse_interface_classes(text: &str) -> BTreeMap<String, Vec<u8>> {
+    let mut classes: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut current: Option<String> = None;
+    for line in text.lines() {
+        if line.starts_with("ugen") {
+            current = line
+                .split_once(": ")
+                .map(|(location, _)| location.to_owned());
+        } else if let (Some(location), Some((key, value))) = (&current, line.split_once('='))
+            && key.trim() == "bInterfaceClass"
+            && let Some(class) = value.split_whitespace().next().and_then(hex)
+            && let Ok(class) = u8::try_from(class)
+        {
+            let list = classes.entry(location.clone()).or_default();
+            if !list.contains(&class) {
+                list.push(class);
+            }
+        }
+    }
+    classes
+}
+
+/// A device's kind, from its interfaces when the device itself does not say.
+pub(crate) fn device_kind(class: u32, interfaces: &[u8]) -> Kind {
+    match kind(class) {
+        // 0xef is "miscellaneous", used by composite devices such as webcams.
+        Kind::Other => {
+            let kinds: Vec<Kind> = interfaces.iter().map(|c| kind(u32::from(*c))).collect();
+            // A webcam with a microphone is a camera; a headset with buttons is audio.
+            [
+                Kind::Camera,
+                Kind::Bluetooth,
+                Kind::Audio,
+                Kind::Printer,
+                Kind::Storage,
+                Kind::Input,
+            ]
+            .into_iter()
+            .find(|kind| kinds.contains(kind))
+            .unwrap_or(Kind::Other)
+        }
+        kind => kind,
+    }
 }
 
 /// Many devices report class 0 and describe themselves per interface, which
@@ -76,6 +119,17 @@ mod tests {
                 .unwrap()
                 .starts_with("QEMU Tablet")
         );
+    }
+
+    #[test]
+    fn composite_devices_are_known_by_their_interfaces() {
+        let text = "ugen1.2: <Camera> at usbus1\n\n  Interface 0\n    bInterfaceClass = 0x000e  <Video device>\n  Interface 2\n    bInterfaceClass = 0x0001  <Audio device>\nugen1.3: <x> at usbus1\n";
+        let classes = parse_interface_classes(text);
+        assert_eq!(classes["ugen1.2"], [0x0e, 0x01]);
+        assert_eq!(device_kind(0xef, &classes["ugen1.2"]), Kind::Camera);
+        assert_eq!(device_kind(0, &[0x01, 0x03]), Kind::Audio);
+        assert_eq!(device_kind(0, &[0xff]), Kind::Other);
+        assert_eq!(device_kind(0x09, &[0x03]), Kind::Hub);
     }
 
     #[test]

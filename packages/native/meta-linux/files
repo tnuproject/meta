@@ -1,0 +1,3 @@
+0555 @meta-linux /usr/local/bin/meta-linux
+0555 @meta-exec /usr/local/bin/meta-exec
+0444 LICENSE /usr/local/share/licenses/meta-linux/LICENSE

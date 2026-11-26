@@ -1,0 +1,36 @@
+[package]
+name = "meta-linux"
+description = "Linux compatibility environment command line tools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+default-run = "meta-linux"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "meta-linux"
+path = "src/main.rs"
+
+[[bin]]
+name = "meta-exec"
+path = "src/exec.rs"
+
+[dependencies]
+clap.workspace = true
+linux2bsd.workspace = true
+meta-analyzer.workspace = true
+meta-common.workspace = true
+meta-linux-vm.workspace = true
+meta-maes.workspace = true
+meta-model.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+rustix.workspace = true

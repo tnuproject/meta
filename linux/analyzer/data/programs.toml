@@ -1,0 +1,87 @@
+# Programs whose documentation states that they need something only a Linux kernel
+# has. Matched by file name, for Linux executables only.
+schema = 1
+
+[[program]]
+names = ["dockerd", "docker-init", "docker-proxy"]
+requires = ["kernel:namespaces", "kernel:cgroup-v2", "kernel:overlayfs", "kernel:netfilter"]
+reason = "the Docker engine builds containers from kernel features"
+reference = "https://docs.docker.com/engine/install/binaries/"
+
+[[program]]
+names = ["containerd", "containerd-shim-runc-v2", "nerdctl"]
+requires = ["kernel:namespaces", "kernel:cgroup-v2"]
+reason = "containerd builds containers from kernel features"
+reference = "https://github.com/containerd/containerd/blob/main/docs/getting-started.md"
+
+[[program]]
+names = ["runc", "crun", "youki"]
+requires = ["kernel:namespaces", "kernel:cgroup-v2"]
+reason = "an OCI runtime for Linux containers"
+reference = "https://github.com/opencontainers/runtime-spec/blob/main/config-linux.md"
+
+[[program]]
+names = ["podman", "buildah", "conmon"]
+requires = ["kernel:namespaces"]
+reason = "Linux containers are built from namespaces"
+reference = "https://docs.podman.io/en/latest/markdown/podman.1.html"
+
+[[program]]
+names = ["lxc-start", "lxd", "incusd", "systemd-nspawn"]
+requires = ["kernel:namespaces", "kernel:cgroup-v2"]
+reason = "system containers are built from namespaces and control groups"
+reference = "https://linuxcontainers.org/lxc/getting-started/"
+
+[[program]]
+names = ["bwrap", "flatpak", "firejail", "unshare", "nsenter"]
+requires = ["kernel:namespaces"]
+reason = "isolates programs with namespaces"
+reference = "https://man7.org/linux/man-pages/man7/namespaces.7.html"
+
+[[program]]
+names = ["snapd", "snap-confine"]
+requires = ["kernel:namespaces", "init:systemd"]
+reason = "snaps are confined with namespaces and started by systemd"
+reference = "https://snapcraft.io/docs/system-requirements"
+
+[[program]]
+names = ["systemd", "systemctl", "systemd-run", "journalctl", "loginctl"]
+requires = ["init:systemd"]
+reason = "part of systemd"
+reference = "https://www.freedesktop.org/software/systemd/man/latest/systemd.html"
+
+[[program]]
+names = ["modprobe", "insmod", "rmmod", "kmod", "depmod"]
+requires = ["kernel:modules"]
+reason = "manages Linux kernel modules"
+reference = "https://man7.org/linux/man-pages/man8/modprobe.8.html"
+
+[[program]]
+names = ["kubelet", "k3s", "minikube", "kubeadm"]
+requires = ["kernel:namespaces", "kernel:cgroup-v2", "kernel:netfilter"]
+reason = "runs containers"
+reference = "https://kubernetes.io/docs/setup/production-environment/container-runtimes/"
+
+[[program]]
+names = ["bpftrace", "bpftool"]
+requires = ["kernel:bpf"]
+reason = "loads eBPF programs"
+reference = "https://docs.ebpf.io/"
+
+[[program]]
+names = ["nft", "iptables", "ip6tables", "firewalld"]
+requires = ["kernel:netfilter"]
+reason = "configures Linux packet filtering"
+reference = "https://wiki.nftables.org/"
+
+[[program]]
+names = ["firecracker", "cloud-hypervisor"]
+requires = ["device:kvm"]
+reason = "needs KVM"
+reference = "https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md"
+
+[[program]]
+names = ["fusermount", "fusermount3", "sshfs", "rclone-mount"]
+requires = ["kernel:fuse"]
+reason = "mounts through FUSE"
+reference = "https://man7.org/linux/man-pages/man4/fuse.4.html"

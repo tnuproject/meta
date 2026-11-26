@@ -40,14 +40,16 @@ of this table, and CI keeps the two in agreement.
 | metaupd-release | EXPERIMENTAL | Generates, signs and verifies release metadata |
 | meta-installer | EXPERIMENTAL | Installs on a whole disk with ZFS; no UFS, encryption or custom partitioning |
 | Installation media | EXPERIMENTAL | Build script for a BIOS and UEFI image that installs without a network |
-| EDS | EXPERIMENTAL | Detects hardware and reports known support; does not install drivers |
+| EDS | EXPERIMENTAL | Detects hardware, weighs evidence about drivers, plans and carries out changes; no physical hardware tested |
+| Linux machines | EXPERIMENTAL | Debian and Arch with their own kernel under bhyve, unprivileged; Debian 12 verified in a nested virtual machine |
+| Adaptive execution | EXPERIMENTAL | Finds out what a program needs and runs it in the least demanding runtime that has it |
 | META Network | EXPERIMENTAL | NetworkManager-compatible service for wired networks; no Wi-Fi or VPN |
 | Kernel build | EXPERIMENTAL | FreeBSD GENERIC with a META identity, from a pinned source, as a package |
 | Native packages | EXPERIMENTAL | META packages and a signed repository; none is published |
 | Package policy | EXPERIMENTAL | Isolation and override rules as tested code; not connected to pkg |
 | Desktops | EXPERIMENTAL | XFCE installed and used in a virtual machine; the others are untested |
-| Containers | EXPERIMENTAL | Compatibility roots run as jails; no general container support |
-| LinuxKPI | RESEARCH REQUIRED | Gap analysis tool and one driver family analyzed; no driver work |
+| Containers | EXPERIMENTAL | Compatibility roots as jails; Docker, Podman and containerd inside Linux machines |
+| LinuxKPI | RESEARCH REQUIRED | Registry, gap analysis and porting predictions; no driver work |
 | GRUB | RESEARCH REQUIRED | FreeBSD's loader is used until GRUB is validated |
 | Core utilities | PLANNED | FreeBSD base utilities; no replacements written |
 
@@ -59,11 +61,11 @@ What was tested, where and when is recorded in
 ```
  Applications     FreeBSD programs            Linux programs
                         |                          |
- META userspace   meta  meta-eds  metaupd      linux2BSD
+ META userspace   meta  meta-eds  metaupd      meta-exec, linux2BSD
                         |             |            |
  Packages         pkg (host)          |     APT / Pacman in separate roots
                         |             |            |
- FreeBSD          base system    ZFS boot     Linuxulator, jails
+ FreeBSD          base system    ZFS boot     Linuxulator, jails, bhyve
                         |        environments      |
  Kernel           FreeBSD: scheduler, memory, VFS, network, drivers, LinuxKPI
 ```
@@ -77,6 +79,10 @@ Start with [ARCHITECTURE.md](ARCHITECTURE.md).
 | linux2BSD | [docs/compatibility/linux2bsd.md](docs/compatibility/linux2bsd.md) |
 | LinuxKPI | [docs/compatibility/linuxkpi.md](docs/compatibility/linuxkpi.md) |
 | Containers | [docs/compatibility/containers.md](docs/compatibility/containers.md) |
+| Compatibility layers | [docs/compatibility/MASTER_ARCHITECTURE.md](docs/compatibility/MASTER_ARCHITECTURE.md) |
+| Hardware drivers | [docs/drivers/MDCF_ARCHITECTURE.md](docs/drivers/MDCF_ARCHITECTURE.md) |
+| Linux machines | [docs/linux-compatibility/MLCE_ARCHITECTURE.md](docs/linux-compatibility/MLCE_ARCHITECTURE.md) |
+| Runtime selection | [docs/linux-compatibility/RUNTIME_SELECTION.md](docs/linux-compatibility/RUNTIME_SELECTION.md) |
 | META Network | [docs/networking/meta-network.md](docs/networking/meta-network.md) |
 | EDS | [docs/hardware/eds.md](docs/hardware/eds.md) |
 | metaupd | [docs/updates/metaupd.md](docs/updates/metaupd.md) |
@@ -99,9 +105,16 @@ nor system calls.
 interface on top of FreeBSD's network tools. It covers wired networks. It is not a
 port of NetworkManager; none exists.
 
-**EDS** (Extended Driver Support) detects hardware and records, for each driver,
-whether it is native, LinuxKPI, firmware, userspace or unsupported, and whether
-META has tested it.
+**EDS** (Extended Driver Support) detects hardware, weighs the evidence about each
+driver, and says what is confirmed, probable, incompatible or simply unknown. It
+changes the system only after showing a plan.
+
+**Linux machines** are Debian or Arch with their own kernel and systemd, under bhyve,
+for programs that need what FreeBSD's kernel does not have. bhyve runs as the user, in
+a jail.
+
+**Adaptive execution** (`meta-exec`) finds out what a program needs and starts it
+natively, through Linuxulator, in an edition or in a machine, and explains why.
 
 **metaupd** updates the whole system from signed releases published on
 [GitHub Releases](https://github.com/tnuproject/meta/releases). It installs into a
@@ -166,8 +179,10 @@ the [virtual machine tests](tests/vm/README.md).
 - The installer uses a whole disk with ZFS. No encryption, dual boot or UFS.
 - metaupd updates packages in a boot environment. It does not update the EFI system
   partition or firmware.
-- Linux support depends on Linuxulator. Programs that need namespaces, cgroups,
-  systemd, Linux kernel modules or a newer kernel interface will not work.
+- Linux programs that need namespaces, cgroups, systemd, Linux kernel modules or a
+  newer kernel interface do not work on Linuxulator; they need a Linux machine, which
+  has no accelerated graphics. See
+  [known limitations](docs/compatibility/KNOWN_LIMITATIONS.md).
 - LinuxKPI does not make arbitrary Linux drivers work on FreeBSD.
 - Firmware, the EFI system partition and data outside a boot environment cannot
   be rolled back with it.

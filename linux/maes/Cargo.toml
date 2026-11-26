@@ -1,0 +1,24 @@
+[package]
+name = "meta-maes"
+description = "Chooses where a program runs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+linux2bsd.workspace = true
+meta-analyzer.workspace = true
+meta-common.workspace = true
+meta-compat.workspace = true
+meta-linux-vm.workspace = true
+meta-model.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

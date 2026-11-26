@@ -1,4 +1,4 @@
-schema = 1
+schema = 2
 
 [[entry]]
 id = "ethernet-virtio"
@@ -83,7 +83,9 @@ category = "wireless"
 support = "linuxkpi"
 validation = "documented"
 driver = "iwlwifi"
-packages = ["wifi-firmware-iwlwifi-kmod"]
+modules = ["if_iwlwifi"]
+firmware = ["wifi-firmware-iwlwifi-kmod"]
+linuxkpi = ["ieee80211_alloc_hw", "ieee80211_register_hw"]
 source = "https://www.freebsd.org/status/report-2026-01-2026-03/lkpi-wireless/"
 notes = "Feature level and suspend support vary by adapter and FreeBSD release."
 
@@ -127,7 +129,8 @@ category = "wireless"
 support = "linuxkpi"
 validation = "documented"
 driver = "rtw88"
-packages = ["wifi-firmware-rtw88-kmod"]
+modules = ["if_rtw88"]
+firmware = ["wifi-firmware-rtw88-kmod"]
 source = "https://man.freebsd.org/cgi/man.cgi?query=rtw88&sektion=4"
 
 [[entry.matches]]
@@ -142,7 +145,8 @@ category = "wireless"
 support = "linuxkpi"
 validation = "documented"
 driver = "rtw89"
-packages = ["wifi-firmware-rtw89-kmod"]
+modules = ["if_rtw89"]
+firmware = ["wifi-firmware-rtw89-kmod"]
 source = "https://man.freebsd.org/cgi/man.cgi?query=rtw89&sektion=4"
 
 [[entry.matches]]
@@ -164,3 +168,35 @@ notes = "Some adapters additionally need firmware loaded at attach time."
 [[entry.matches]]
 bus = "usb"
 kind = "bluetooth"
+
+[[entry]]
+id = "wifi-qualcomm-ath11k"
+name = "Qualcomm Wi-Fi 6 (ath11k, LinuxKPI)"
+category = "wireless"
+support = "experimental"
+validation = "documented"
+driver = "ath11k"
+modules = ["if_ath11k"]
+linuxkpi = ["mhi_sync_power_up", "qmi_send_request"]
+source = "https://www.freebsd.org/status/report-2026-01-2026-03/lkpi-wireless/"
+limitations = ["the firmware handshake is unfinished; see linuxkpi/ath11k.md"]
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x17cb
+devices = [0x1101, 0x1103, 0x1104]
+
+[[entry]]
+id = "rng-virtio"
+name = "VirtIO entropy device"
+category = "platform"
+support = "native"
+validation = "documented"
+driver = "virtio_pci"
+modules = ["virtio_random"]
+source = "https://man.freebsd.org/cgi/man.cgi?query=virtio_random&sektion=4"
+
+[[entry.matches]]
+bus = "pci"
+vendor = 0x1af4
+devices = [0x1005, 0x1044]

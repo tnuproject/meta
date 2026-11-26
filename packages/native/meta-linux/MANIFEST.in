@@ -1,0 +1,12 @@
+name: meta-linux
+origin: meta/meta-linux
+version: "@VERSION@"
+comment: "Linux compatibility environment for META"
+desc: "meta-linux and meta-exec: Linux virtual machines on bhyve, and choosing where a program runs."
+maintainer: "packages@meta.invalid"
+www: "https://github.com/tnuproject/meta"
+categories: [emulators]
+licenselogic: single
+licenses: [BSD2CLAUSE]
+prefix: /usr/local
+deps: { "edk2-bhyve": { origin: "sysutils/edk2", version: "g202508_3" }, libslirp: { origin: "net/libslirp", version: "4.9.5" }, "qemu-tools": { origin: "emulators/qemu", version: "11.1.2" }, "meta-tools": { origin: "meta/meta-tools", version: "@VERSION@" } }

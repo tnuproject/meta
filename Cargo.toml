@@ -3,10 +3,16 @@ resolver = "3"
 members = [
     "cli",
     "common",
+    "compatibility/model",
     "eds/cli",
     "eds/driver-database",
+    "eds/engine",
     "eds/hardware-detection",
     "installer",
+    "linux/analyzer",
+    "linux/cli",
+    "linux/maes",
+    "linux/vm",
     "linux2bsd",
     "metaupd/cli",
     "metaupd/daemon",
@@ -39,6 +45,11 @@ meta-dbus = { path = "desktop/dbus" }
 meta-compat = { path = "packages/compat" }
 meta-eds-db = { path = "eds/driver-database" }
 meta-eds-detect = { path = "eds/hardware-detection" }
+meta-analyzer = { path = "linux/analyzer" }
+meta-maes = { path = "linux/maes" }
+meta-linux-vm = { path = "linux/vm" }
+meta-mdcf = { path = "eds/engine" }
+meta-model = { path = "compatibility/model" }
 meta-net = { path = "networking" }
 meta-pkg-policy = { path = "packages/policy" }
 metaupd = { path = "metaupd/cli" }
@@ -60,6 +71,7 @@ rustix = { version = "1", features = ["process"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
+signal-hook = { version = "0.3", default-features = false, features = ["iterator"] }
 tempfile = "3"
 thiserror = "2"
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }

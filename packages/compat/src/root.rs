@@ -117,14 +117,7 @@ impl<'a> Root<'a> {
 
     /// Name for a new dataset, in the pool of the running system.
     fn new_dataset(&self) -> Result<String, RootError> {
-        let output = self.runner.stdout(MOUNT, &["-p"])?;
-        let source = output
-            .lines()
-            .map(|line| line.split_whitespace().collect::<Vec<_>>())
-            .find(|fields| fields.get(1) == Some(&"/") && fields.get(2) == Some(&"zfs"))
-            .and_then(|fields| fields.first().map(|s| (*s).to_owned()))
-            .ok_or(RootError::NoPool)?;
-        let pool = source.split('/').next().unwrap_or_default();
+        let pool = meta_common::platform::root_pool(self.runner).ok_or(RootError::NoPool)?;
         Ok(format!("{pool}/meta/compat/{}", self.edition.id))
     }
 

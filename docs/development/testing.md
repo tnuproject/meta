@@ -50,8 +50,38 @@ installations and a graphical session.
 | Workflows | actionlint 1.7.12 | No findings; not run on GitHub |
 | Update state | `meta doctor` before and after creating a dataset | Warned, then passed |
 
+### Compatibility layers
+
+2026-11-25 and 26, same FreeBSD machine, now also with an invariant TSC. bhyve ran inside it,
+so guests were nested three deep (Hyper-V, KVM, bhyve): a Debian boot took 20 to 60 minutes.
+
+| Area | What was done | Result |
+|---|---|---|
+| Discovery | `devinfo -v`, `pciconf -lc`, `usbconfig` captured as fixtures; `tests/vm/guest/mdcf.sh` | Passed; nothing changed by looking |
+| Evaluation | VirtIO network CONFIRMED, xHCI and HDA PROBABLE | As expected |
+| LinuxKPI prediction | ath11k, rtw88, iwlwifi from releng/15.1 | See [predictions](../drivers/MPDC_PREDICTION_ENGINE.md) |
+| Driver life cycle | Plans and refusals; enabling a module | Plans passed; enabling not run, no VirtIO entropy device |
+| Images | Debian 12 and Arch downloaded and verified by digest | Passed |
+| Confinement | bhyve and its network helper as the owner, in a jail, no host files or devices visible | Passed |
+| Debian 12 guest | `mlce-machine.sh`: systemd as process 1, PID namespace, cgroup v2 memory limit, `modprobe dummy`, 9p share both ways, no root-owned files on the host, isolated network | Passed |
+| Launching | Arguments, standard input, exit codes 42 and 137, SIGTERM passed on, other users refused | Passed |
+| Same program, two kernels | `mlce-requirements.sh`: a static Linux program asks for 17 system calls | Linuxulator lacks 13 of them, the guest none; matches the registry |
+| Runtime selection | Linuxulator chosen without requirements; machine chosen when namespaces are declared or a trial failed for `unshare`; preferences cannot override | Passed |
+| Stopping | ACPI power button | The guest stopped; whether by itself or after the time limit could not be told, so `forced off` was added |
+| Arch guest | Created from the verified image, started; confinement checks of `mlce-machine.sh` | Passed; the boot itself was not waited for |
+| Open network | `apt-get update` in the guest | bhyve's network helper aborted; see [limitations](../compatibility/KNOWN_LIMITATIONS.md) |
+
+Problems found and corrected on the way: slirp's restricted mode fails for root in 15.1 (bhyve
+now runs as the owner); 9p refused every mount until the jail knew `nobody`; Debian images are
+sparse archives that bsdtar cannot unpack (qcow2 is used); systemd's 90 second limits expire
+under triple nesting (the tests raise them).
+
 The workspace's tests also pass on Windows 11 (Rust 1.99.0) and on Ubuntu 24.04 under WSL
 (Rust 1.99.0). The minimum version, 1.89, is checked only by CI.
+
+Not done for the compatibility layers: cgroup v1, a complete Arch boot, containers and graphical
+programs in a guest (`mlce-containers.sh`, `mlce-gui.sh` exist), an entropy device for the driver
+life cycle.
 
 Not done: physical hardware, aarch64, the desktop rehearsal with UEFI, graphics acceleration,
 Wi-Fi, suspend, desktops other than XFCE, building the Arch package, running the GitHub
