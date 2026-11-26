@@ -59,6 +59,28 @@ jobs:
         run: |
           # shellcheck disable=SC2086
           bash tests/vm/suite.sh $TARGETS
+      - name: Keep the installation image
+        if: contains(matrix.targets, 'm11')
+        run: |
+          image="$RUNNER_TEMP/test-image"
+          mkdir -p "$image"
+          mv ~/.cache/meta-freebsd-vm/meta.iso "$image/meta-26.0-test.iso"
+          cat >"$image/README.txt" <<EOF
+          META 26.0 test image, built by the System tests workflow from commit $GITHUB_SHA.
+
+          Not a release. Its package repository and update keys were generated inside a
+          disposable virtual machine and no longer exist, so a system installed from it
+          cannot receive signed updates. The console is serial as well as video.
+          It installed and booted with BIOS and UEFI in QEMU before being kept.
+          EOF
+          (cd "$image" && sha256sum meta-26.0-test.iso >SHA256SUMS)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: contains(matrix.targets, 'm11')
+        with:
+          name: meta-26.0-test-image
+          path: ${{ runner.temp }}/test-image/
+          retention-days: 7
+          if-no-files-found: error
       - name: Console output
         if: failure()
         run: tail -c 20000 ~/.cache/meta-freebsd-vm/console*.log
