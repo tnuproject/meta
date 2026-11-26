@@ -8,6 +8,7 @@ cd /root/meta
 src=/usr/src
 [ -f $src/release/amd64/mkisoimages.sh ] || {
 	src=/root/src
+	command -v git >/dev/null || pkg install -qy git-tiny </dev/null >/dev/null 2>&1
 	sh scripts/fetch-kernel-source.sh $src >/dev/null
 }
 sh packages/native/build-packages.sh -b "$BIN" -o /root/p5 -V 26.0 meta-tools meta-release meta-installer >/dev/null
